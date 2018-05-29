@@ -1,0 +1,8 @@
+{
+  "name": "matrix-as-av",
+  "version": "0.0.1",
+  "description": "A Matrix Application Service for arbitrary checking of media hosted by a Matrix media repository",
+  "main": "src/index.js",
+  "author": "-",
+  "license": "Apache-2.0"
+}
