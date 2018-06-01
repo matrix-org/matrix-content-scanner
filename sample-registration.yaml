@@ -1,0 +1,39 @@
+# sample-registration.yaml
+#
+# This is a sample registration file for a Matrix Application Service (AS).
+#
+# This file must be accessible to the Home Server. To register this AS with 
+# a synapse HS, add the path of this file to app_service_config_files in the HS
+# configuration file.
+
+id: some_identifier
+hs_token: 7616c933866baebd568ece3bd9433f02c531781d908d90243146da65a68e107a
+as_token: a87ffd9428e3725e4ec2e2dfac5e0b133e8695845a7385f894336e28cccfce27
+
+# Namespaces are used to give an AS exclusive control over a subset of users
+# and room aliases.
+#
+# (Not used by matrix-as-av)
+# namespaces:
+#   users:
+#     - exclusive: true
+#       regex: '@_some_prefix_.*'
+#   aliases:
+#     - exclusive: true
+#       regex: '#_some_prefix_@.*'
+#     - exclusive: true
+#       regex: '#_some_prefix_#.*'
+#   rooms: []
+
+# The URL of this AS. The HS will need access to this for user and room 
+# queries.
+url: 'http://localhost:9000'
+
+# The localpart of the user that the AS appears as when sending messages to
+# users. e.g. @as_bot_user_id:domain.tld
+#
+# (Not used by matrix-as-av)
+# sender_localpart: as_bot_user_id
+
+# If true, the HS will limit the rate of requests made by the AS.
+rate_limited: false

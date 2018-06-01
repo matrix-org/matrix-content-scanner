@@ -2,7 +2,14 @@
   "name": "matrix-as-av",
   "version": "0.0.1",
   "description": "A Matrix Application Service for arbitrary checking of media hosted by a Matrix media repository",
-  "main": "src/index.js",
+  "main": "m-as-av.js",
   "author": "-",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-validation": "^1.0.2",
+    "joi": "^13.3.0",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  }
 }
