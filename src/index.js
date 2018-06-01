@@ -18,7 +18,7 @@ function respondWithError(req, res, err) {
     }).end();
 }
 
-function errorHandler(err, req, res, next) {
+function errorMiddleware(err, req, res, next) {
     // ClientError was thrown
     if (err instanceof ClientError) {
         respondWithError(req, res, err);
@@ -37,14 +37,14 @@ function errorHandler(err, req, res, next) {
     respondWithError(req, res, new ClientError(500, 'Unhandled server error'));
 }
 
-function handleJsonError(err, req, res, next) {
+function jsonErrorMiddleware(err, req, res, next) {
     respondWithError(res, new ClientError(400, `Malformed JSON: ${err.message}`));
 }
 
 app.use(consoleMiddleware);
-app.use(express.json(), handleJsonError);
-app.use(errorHandler);
+app.use(express.json(), jsonErrorMiddleware);
+app.use(errorMiddleware);
 
-attachHandlers(app, errorHandler);
+attachHandlers(app, errorMiddleware);
 
 app.listen(serverConfig.port, () => console.log('Listening on ' + serverConfig.port));
