@@ -8,7 +8,7 @@ const decryptFile = require('./decrypt-file.js');
 
 const resultCache = {};
 // Generate a report on a Matrix file event.
-module.exports = async function generateReport(eventContentFile, opts) {
+module.exports = async function generateReport(console, eventContentFile, opts) {
     const url = eventContentFile.url;
 
     const { baseUrl, tempDirectory, script } = opts;
@@ -52,7 +52,7 @@ module.exports = async function generateReport(eventContentFile, opts) {
     console.info(`Running command ${cmd}`);
     const result = await executeCommand(cmd);
 
-    console.info(`Result: url = "${url}", clean = ${result.clean}`);
+    console.info(`Result: url = "${url}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
     resultCache[url] = result;
 

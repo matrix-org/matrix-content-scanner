@@ -51,7 +51,6 @@ module.exports = function decryptData(dataBuffer, info) {
 
     const decipher = crypto.createDecipheriv(alg, key, iv);
 
-    console.info(`Deciphering ${dataBuffer.length} bytes`);
     return Buffer.concat([
         decipher.update(dataBuffer),
         decipher.final(),

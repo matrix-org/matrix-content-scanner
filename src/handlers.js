@@ -31,7 +31,7 @@ const scanSchema = {
 };
 
 async function scanHandler(req, res, next) {
-    const { clean, info } = await generateReport(req.body.file, scanConfig);
+    const { clean, info } = await generateReport(req.console, req.body.file, scanConfig);
 
     const responseBody = { clean, info };
 
