@@ -2,10 +2,10 @@ const express = require('express');
 const app = express();
 
 const ClientError = require('./client-error.js');
+const consoleMiddleware = require('./console-middleware.js');
+const { attachHandlers } = require('./handlers.js');
 
 const serverConfig = require('../config.js').server;
-
-const consoleMiddleware = require('./console-middleware.js');
 
 function respondWithError(req, res, err) {
     req.console.info(`Responding to client with error: ${err.status} ${err.message}`);
@@ -44,8 +44,6 @@ function handleJsonError(err, req, res, next) {
 app.use(consoleMiddleware);
 app.use(express.json(), handleJsonError);
 app.use(errorHandler);
-
-const { attachHandlers } = require('./handlers.js');
 
 attachHandlers(app, errorHandler);
 
