@@ -5,31 +5,7 @@ const ClientError = require('./client-error.js');
 
 const serverConfig = require('../config.js').server;
 
-
-// Example: '2017-01-24 11:32:44.054'
-function getTimestamp() {
-    return new Date().toISOString().split(/[TZ]/).join(' ').trim();
-}
-
-const logFunctions = {
-    'info': console.info,
-    'log': console.log,
-    'warn': console.warn,
-    'error': console.error,
-};
-
-function getConsole() {
-    // Random request ID
-    const id = Math.random().toString(12).slice(2, 10);
-    return Object.keys(logFunctions).reduce((result, level) =>
-        ({
-            ...result,
-            [level]: (...args) =>
-                logFunctions[level](getTimestamp(), `[${id}] ${level} -`, ...args),
-        }),
-        {}
-    );
-}
+const consoleMiddleware = require('./console-middleware.js');
 
 function respondWithError(req, res, err) {
     req.console.info(`Responding to client with error: ${err.status} ${err.message}`);
@@ -65,11 +41,7 @@ function handleJsonError(err, req, res, next) {
     respondWithError(res, new ClientError(400, `Malformed JSON: ${err.message}`));
 }
 
-app.use((req, res, next) => {
-    req.console = getConsole();
-    next();
-});
-
+app.use(consoleMiddleware);
 app.use(express.json(), handleJsonError);
 app.use(errorHandler);
 
