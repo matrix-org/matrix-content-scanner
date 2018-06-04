@@ -37,7 +37,11 @@ function errorMiddleware(err, req, res, next) {
     respondWithError(req, res, new ClientError(500, 'Unhandled server error'));
 }
 
-attachMiddlewares(app, errorMiddleware);
-attachHandlers(app, errorMiddleware);
+attachMiddlewares(app);
+attachHandlers(app);
+
+// Add a generic error handler to take care of anything unhandled, and also
+// any ClientErrors that are thrown by the handlers.
+app.use(errorMiddleware);
 
 app.listen(serverConfig.port, () => console.log('Listening on ' + serverConfig.port));

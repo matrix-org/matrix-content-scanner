@@ -38,8 +38,8 @@ async function scanHandler(req, res, next) {
     res.status(200).json(responseBody);
 }
 
-function attachHandlers(app, errorHandler) {
-    app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler), errorHandler);
+function attachHandlers(app) {
+    app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler));
 }
 
 module.exports = {
