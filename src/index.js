@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 const ClientError = require('./client-error.js');
-const consoleMiddleware = require('./console-middleware.js');
+const { attachMiddlewares } = require('./middlewares.js');
 const { attachHandlers } = require('./handlers.js');
 
 const serverConfig = require('../config.js').server;
@@ -37,14 +37,7 @@ function errorMiddleware(err, req, res, next) {
     respondWithError(req, res, new ClientError(500, 'Unhandled server error'));
 }
 
-function jsonErrorMiddleware(err, req, res, next) {
-    respondWithError(res, new ClientError(400, `Malformed JSON: ${err.message}`));
-}
-
-app.use(consoleMiddleware);
-app.use(express.json(), jsonErrorMiddleware);
-app.use(errorMiddleware);
-
+attachMiddlewares(app, errorMiddleware);
 attachHandlers(app, errorMiddleware);
 
 app.listen(serverConfig.port, () => console.log('Listening on ' + serverConfig.port));
