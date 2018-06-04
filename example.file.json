@@ -4,18 +4,18 @@
         "key": {
             "alg": "A256CTR",
             "ext": true,
-            "k": "_TE74SG7r7X3TIoNTQuddPHI3TYmSETyzUREuIPiTa4",
+            "k": "3InU2yNf0xL2ivudzls_nqnbCN9VWvHVQBCNWRPrMzk",
             "key_ops": [
                 "encrypt",
                 "decrypt"
             ],
             "kty": "oct"
         },
-        "iv": "0K96wYfzqqQAAAAAAAAAAA",
+        "iv": "R/ZLJIXcmGAAAAAAAAAAAA",
         "hashes": {
-            "sha256": "/1QKznhtceRKYXGdftVrXofmNLN/VoxLMxCPlz85gtc"
+            "sha256": "FfzQwGbFuBhvFQqASyeN95D9QKLCaoD+9l4eUqK4epk"
         },
-        "url": "mxc://ldbco.de/jmUXgJYfkHOfGSPeJyIFweUt",
+        "url": "mxc://matrix.org/mIXAOwOuCyGHveXRMcCAeqcq",
         "mimetype": "image/png"
     }
 }
