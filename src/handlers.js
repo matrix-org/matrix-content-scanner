@@ -50,7 +50,7 @@ async function scanReportHandler(req, res, next) {
     const { clean, scanned, info } = await getReport(req.console, req.body.fileUrl);
 
     const responseBody = { clean, scanned, info };
-    console.info(`Returning scan report: url = ${req.body.fileUrl}, scanned = ${scanned}, clean = ${clean}`);
+    req.console.info(`Returning scan report: url = ${req.body.fileUrl}, scanned = ${scanned}, clean = ${clean}`);
 
     res.status(200).json(responseBody);
 }
