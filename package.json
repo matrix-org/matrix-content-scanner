@@ -1,12 +1,13 @@
 {
-  "name": "matrix-as-av",
+  "name": "matrix-context-scanner",
   "version": "0.0.1",
-  "description": "A Matrix Application Service for arbitrary checking of media hosted by a Matrix media repository",
-  "main": "m-as-av.js",
+  "description": "A web service for scanning media hosted by a Matrix media repository",
+  "main": "src/index.js",
   "author": "-",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "express": "^4.16.3",
