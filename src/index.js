@@ -5,7 +5,27 @@ const ClientError = require('./client-error.js');
 const { attachMiddlewares } = require('./middlewares.js');
 const { attachHandlers } = require('./handlers.js');
 
-const serverConfig = require('../config.js').server;
+const { loadConfig, getConfig } = require('./config.js');
+
+const process = require('process');
+const path = require('path');
+
+if (process) {
+    const processArguments = process.argv.slice(2);
+
+    const configPath = processArguments[0] ||
+        path.join(process.cwd(), 'config', 'default.config.yaml');
+
+    console.info(`Loading configuration file ${configPath}`);
+    try {
+        loadConfig(configPath);
+    } catch (err) {
+        console.error(`Failed to load configuration file ${configPath}: ${err.message}`);
+        process.exit(1);
+    }
+}
+
+const serverConfig = getConfig().server;
 
 function respondWithError(req, res, err) {
     req.console.info(`Responding to client with error: ${err.status} ${err.message}`);

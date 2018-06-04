@@ -7,7 +7,7 @@ function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
 }
 
-const scanConfig = require('../config.js').scan;
+const { getConfig } = require('./config.js');
 
 const scanSchema = {
     body: {
@@ -31,7 +31,9 @@ const scanSchema = {
 };
 
 async function scanHandler(req, res, next) {
-    const { clean, info } = await generateReport(req.console, req.body.file, scanConfig);
+    const config = getConfig();
+
+    const { clean, info } = await generateReport(req.console, req.body.file, config.scan);
 
     const responseBody = { clean, info };
 

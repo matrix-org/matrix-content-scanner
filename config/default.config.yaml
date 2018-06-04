@@ -1,0 +1,11 @@
+# The port to listen to for HTTP requests
+server:
+    port: 9000
+
+scan:
+    # The script that will be given a file as it's first parameter
+    script: './example.sh'
+    # The temporary directory to use
+    tempDirectory: '/tmp'
+    # The base URL of the Home Server to download media from
+    baseUrl: 'https://matrix.org'
