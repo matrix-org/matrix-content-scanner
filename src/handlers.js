@@ -47,7 +47,7 @@ const scanReportSchema = {
 };
 
 async function scanReportHandler(req, res, next) {
-    const { clean, scanned, info } = await getReport(req.console, req.body.fileUrl);
+    const { clean, scanned, info } = await getReport(req.body.fileUrl);
 
     const responseBody = { clean, scanned, info };
     req.console.info(`Returning scan report: url = ${req.body.fileUrl}, scanned = ${scanned}, clean = ${clean}`);

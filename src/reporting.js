@@ -10,7 +10,7 @@ const decryptFile = require('./decrypt-file.js');
 const resultCache = {};
 
 // Get cached report for the given URL
-async function getReport(console, fileUrl) {
+async function getReport(fileUrl) {
     const result = resultCache[fileUrl];
     if (!result) {
         return { clean: false, scanned: false, info: 'This file has not been scanned' };
