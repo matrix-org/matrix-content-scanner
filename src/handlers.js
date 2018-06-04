@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const validate = require('express-validation');
 
-const generateReport = require('./generate-report.js');
+const { getReport, generateReport } = require('./reporting.js');
 
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
@@ -38,8 +38,24 @@ async function scanHandler(req, res, next) {
     res.status(200).json(responseBody);
 }
 
+const scanReportSchema = {
+    body: {
+        fileUrl: Joi.string().uri().required(),
+    }
+};
+
+async function scanReportHandler(req, res, next) {
+    const { clean, scanned, info } = await getReport(req.console, req.body.fileUrl);
+
+    const responseBody = { clean, scanned, info };
+    console.info(`Returning scan report: url = ${req.body.fileUrl}, scanned = ${scanned}, clean = ${clean}`);
+
+    res.status(200).json(responseBody);
+}
+
 function attachHandlers(app) {
     app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler));
+    app.post('/scan_report', validate(scanReportSchema), wrapAsyncHandle(scanReportHandler));
 }
 
 module.exports = {
