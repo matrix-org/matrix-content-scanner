@@ -13,6 +13,32 @@ the file. MCS provides a mechanism as follows:
  3. If the content has been scanned and marked clean, the media is sent to the Matrix client.
  4. Otherwise, the Matrix client will need to invoke MCS directly in order to scan the file. Go to step 1.
 
+# Running
+MCS runs on node.js as an [express.js](https://expressjs.com) HTTP server exposed on the configured port.
+
+```sh
+git clone git@github.com:matrix-org/matrix-content-scanner.git
+
+cd matrix-content-scanner
+
+# Copy default configuration
+cp config/default.config.yaml config/matrix-content-scanner-config.yaml
+
+# Edit new configuration
+vi config/matrix-content-scanner-config.yaml
+
+npm install
+
+npm run start -- config/matrix-content-scanner-config.yaml
+
+# OR
+
+node src/index.js config/matrix-content-scanner-config.yaml
+```
+
+# Configuration
+See the [default configuration](config/default.config.yaml) for details.
+
 # API
 
 ### `POST /scan`
