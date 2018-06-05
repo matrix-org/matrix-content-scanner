@@ -16,7 +16,7 @@ describe('reporting.js (end-to-end tests)', () => {
 
     describe('getReport', () => {
         it('should indicate that a file has not been scanned', async () => {
-            const report = await getReport('mxc://unscanned_file');
+            const report = await getReport('some_secret_that_was_not_generated');
 
             assert.strictEqual(report.clean, false);
             assert.strictEqual(report.scanned, false);
