@@ -13,15 +13,22 @@ function clearReportCache() {
 }
 
 // Get cached report for the given URL
-async function getReport(fileUrl) {
-    const result = resultCache[fileUrl];
+async function getReport(resultSecret) {
+    const result = resultCache[resultSecret];
     if (!result) {
-        return { clean: false, scanned: false, info: 'This file has not been scanned' };
+        return { clean: false, scanned: false, info: 'Secret not recognised, file not scanned.' };
     }
 
     const { clean, info } = result;
 
     return { clean, scanned: true, info };
+}
+
+const crypto = require('crypto');
+function base64sha256(s) {
+    const hash = crypto.createHash('sha256');
+    hash.update(s);
+    return hash.digest('base64');
 }
 
 // Generate a report on a Matrix file event.
@@ -35,8 +42,13 @@ async function generateReport(console, eventContentFile, opts) {
 
     const httpUrl = baseUrl + '/_matrix/media/v1/download/' + url.slice(6);
 
-    if (resultCache[url] !== undefined) {
-        const result = resultCache[url];
+    // Result is cached against the hash of the input file object. Using an MXC would
+    // potentially allow an attacker to mark a file as clean without having the
+    // keys to correctly decrypt it.
+    const resultSecret = base64sha256(JSON.stringify(eventContentFile));
+
+    if (resultCache[resultSecret] !== undefined) {
+        const result = resultCache[resultSecret];
         console.info(`Returning cached result: url = ${url}, clean = ${result.clean}`);
         return result;
     }
@@ -71,7 +83,9 @@ async function generateReport(console, eventContentFile, opts) {
 
     console.info(`Result: url = "${url}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
-    resultCache[url] = result;
+    result.resultSecret = resultSecret;
+
+    resultCache[resultSecret] = result;
 
     fs.unlinkSync(filePath);
     fs.unlinkSync(decryptedFilePath);

@@ -33,24 +33,28 @@ const scanSchema = {
 async function scanHandler(req, res, next) {
     const config = getConfig();
 
-    const { clean, info } = await generateReport(req.console, req.body.file, config.scan);
+    const { clean, info, resultSecret } = await generateReport(req.console, req.body.file, config.scan);
 
-    const responseBody = { clean, info };
+    const responseBody = { clean, info, secret: resultSecret };
 
     res.status(200).json(responseBody);
 }
 
 const scanReportSchema = {
     body: {
-        fileUrl: Joi.string().uri().required(),
+        // The secret that was returned previously by /scan
+        secret: Joi.string().required(),
     }
 };
 
 async function scanReportHandler(req, res, next) {
-    const { clean, scanned, info } = await getReport(req.body.fileUrl);
+    const { clean, scanned, info } = await getReport(req.body.secret);
+
+    const { secret } = req.body;
+    const redactedSecret = secret.slice(0, 4) + '...' + secret.slice(-4);
 
     const responseBody = { clean, scanned, info };
-    req.console.info(`Returning scan report: url = ${req.body.fileUrl}, scanned = ${scanned}, clean = ${clean}`);
+    req.console.info(`Returning scan report: secret = ${redactedSecret} , scanned = ${scanned}, clean = ${clean}`);
 
     res.status(200).json(responseBody);
 }

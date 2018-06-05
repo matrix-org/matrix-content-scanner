@@ -23,9 +23,9 @@ describe('reporting.js (end-to-end tests)', () => {
         });
 
         it('should indicate that a file has been scanned once it has been fetched and scanned', async () => {
-            await generateReport(console, example.file, generateConfig);
+            const result = await generateReport(console, example.file, generateConfig);
 
-            const report = await getReport(example.file.url);
+            const report = await getReport(result.resultSecret);
 
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');
