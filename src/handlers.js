@@ -21,9 +21,9 @@ const scanSchema = {
                 kty: Joi.string().required(),
             }).required(),
             iv: Joi.string().required(),
-            hashes: {
+            hashes: Joi.object().keys({
                 sha256: Joi.string().required(),
-            },
+            }).required(),
             url: Joi.string().uri().required(),
             mimetype: Joi.string().required()
         }).required(),
