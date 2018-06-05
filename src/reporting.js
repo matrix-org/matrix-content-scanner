@@ -55,7 +55,6 @@ async function generateReport(console, eventContentFile, opts) {
 
     const tempDir = fs.mkdtempSync(`${tempDirectory}${path.sep}av-`);
     const filePath = path.join(tempDir, 'unsafeEncryptedFile');
-    const decryptedFilePath = path.join(tempDir, 'unsafeFile');
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
@@ -68,13 +67,20 @@ async function generateReport(console, eventContentFile, opts) {
 
     fs.writeFileSync(filePath, data);
 
-    console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
+    let decryptedFilePath;
+    if (eventContentFile.key) {
+        decryptedFilePath = path.join(tempDir, 'unsafeFile');
+        console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
 
-    try {
-        decryptFile(filePath, decryptedFilePath, eventContentFile);
-    } catch (err) {
-        console.error(err);
-        throw new ClientError(400, 'Failed to decrypt file');
+        try {
+            decryptFile(filePath, decryptedFilePath, eventContentFile);
+        } catch (err) {
+            console.error(err);
+            throw new ClientError(400, 'Failed to decrypt file');
+        }
+    } else {
+        // File is already decrypted
+        decryptedFilePath = filePath;
     }
 
     const cmd = script + ' ' + decryptedFilePath;
@@ -88,7 +94,9 @@ async function generateReport(console, eventContentFile, opts) {
     resultCache[resultSecret] = result;
 
     fs.unlinkSync(filePath);
-    fs.unlinkSync(decryptedFilePath);
+    if (filePath !== decryptedFilePath) {
+        fs.unlinkSync(decryptedFilePath);
+    }
     fs.rmdirSync(tempDir);
 
     return result;

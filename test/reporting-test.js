@@ -22,6 +22,15 @@ describe('reporting.js (end-to-end tests)', () => {
             assert.strictEqual(report.scanned, false);
         });
 
+        it('should indicate that an unencrypted file has been scanned once it has been fetched and scanned', async () => {
+            const result = await generateReport(console, { url: example.file.url }, generateConfig);
+
+            const report = await getReport(result.resultSecret);
+
+            assert.strictEqual(report.scanned, true);
+            assert.strictEqual(typeof report.clean, 'boolean');
+        });
+
         it('should indicate that a file has been scanned once it has been fetched and scanned', async () => {
             const result = await generateReport(console, example.file, generateConfig);
 

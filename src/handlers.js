@@ -12,21 +12,22 @@ const { getConfig } = require('./config.js');
 const scanSchema = {
     body: {
         file: Joi.object().keys({
-            v: Joi.string().required(),
+            v: Joi.string(),
             key: Joi.object().keys({
                 alg: Joi.string().required(),
                 ext: Joi.boolean().required(),
                 k: Joi.string().required(),
                 key_ops: Joi.array().items(Joi.string()).required(),
                 kty: Joi.string().required(),
-            }).required(),
-            iv: Joi.string().required(),
+            }),
+            iv: Joi.string(),
             hashes: Joi.object().keys({
                 sha256: Joi.string().required(),
-            }).required(),
+            }),
             url: Joi.string().uri().required(),
-            mimetype: Joi.string().required()
-        }).required(),
+            mimetype: Joi.string(),
+        // If key is present, v, iv and hashes are required
+        }).with('key', ['v', 'iv', 'hashes']).required(),
     }
 };
 
