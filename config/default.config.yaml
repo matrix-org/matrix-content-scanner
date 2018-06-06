@@ -1,6 +1,7 @@
 # The port to listen to for HTTP requests
 server:
     port: 9000
+    host: "::1"
 
 scan:
     # The script that will be given a file as it's first parameter

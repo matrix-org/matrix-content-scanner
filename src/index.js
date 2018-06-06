@@ -82,4 +82,4 @@ attachHandlers(app);
 // any ClientErrors that are thrown by the handlers.
 app.use(errorMiddleware);
 
-app.listen(serverConfig.port, () => console.log('Listening on ' + serverConfig.port));
+app.listen(serverConfig.port, serverConfig.host, () => console.log('Listening on ' +serverConfig.host + ":" + serverConfig.port));
