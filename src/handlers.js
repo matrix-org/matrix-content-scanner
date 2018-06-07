@@ -19,7 +19,7 @@ limitations under the License.
 const Joi = require('joi');
 const validate = require('express-validation');
 
-const { getReport, generateReport } = require('./reporting.js');
+const { getReport, scannedDownload } = require('./reporting.js');
 
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
@@ -27,60 +27,90 @@ function wrapAsyncHandle(fn) {
 
 const { getConfig } = require('./config.js');
 
-const scanSchema = {
+const encryptedRequestSchema = {
+    params: {
+        domain: Joi.string().hostname().required(),
+        mediaId: Joi.string().required(),
+    },
     body: {
         file: Joi.object().keys({
-            v: Joi.string(),
+            v: Joi.string().required(),
             key: Joi.object().keys({
                 alg: Joi.string().required(),
                 ext: Joi.boolean().required(),
                 k: Joi.string().required(),
                 key_ops: Joi.array().items(Joi.string()).required(),
                 kty: Joi.string().required(),
-            }),
-            iv: Joi.string(),
+            }).required(),
+            iv: Joi.string().required(),
             hashes: Joi.object().keys({
                 sha256: Joi.string().required(),
-            }),
-            url: Joi.string().uri().required(),
+            }).required(),
+            url: Joi.string().uri(),
             mimetype: Joi.string(),
-        // If key is present, v, iv and hashes are required
-        }).with('key', ['v', 'iv', 'hashes']).required(),
+        }).required(),
     }
 };
 
-async function scanHandler(req, res, next) {
-    const config = getConfig();
+const unencryptedRequestSchema = {
+    params: {
+        domain: Joi.string().hostname().required(),
+        mediaId: Joi.string().required(),
+    }
+};
 
-    const { clean, info, resultSecret } = await generateReport(req.console, req.body.file, config.scan);
+async function encryptedDownloadHandler(req, res, next) {
+    const { file } = req.body;
 
-    const responseBody = { clean, info, secret: resultSecret };
-
-    res.status(200).json(responseBody);
+    return downloadHandler(req, res, next, file);
 }
 
-const scanReportSchema = {
-    body: {
-        // The secret that was returned previously by /scan
-        secret: Joi.string().required(),
-    }
-};
+async function downloadHandler(req, res, next, file) {
+    const config = getConfig();
 
-async function scanReportHandler(req, res, next) {
-    const { clean, scanned, info } = await getReport(req.body.secret);
+    const { domain, mediaId } = req.params;
 
-    const { secret } = req.body;
-    const redactedSecret = secret.slice(0, 4) + '...' + secret.slice(-4);
+    return scannedDownload(req, res, domain, mediaId, file, config.scan);
+}
 
-    const responseBody = { clean, scanned, info };
-    req.console.info(`Returning scan report: secret = ${redactedSecret} , scanned = ${scanned}, clean = ${clean}`);
+async function encryptedScanReportHandler(req, res, next) {
+    const { file } = req.body;
+
+    return scanReportHandler(req, res, next, file);
+}
+
+async function scanReportHandler(req, res, next, file) {
+    const config = getConfig();
+    const { domain, mediaId } = req.params;
+    const { clean, info } = await getReport(req.console, domain, mediaId, file, config.scan);
+
+    const responseBody = { clean, info };
+    req.console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
 
     res.status(200).json(responseBody);
 }
 
 function attachHandlers(app) {
-    app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler));
-    app.post('/scan_report', validate(scanReportSchema), wrapAsyncHandle(scanReportHandler));
+    app.post(
+        '/_matrix/media_proxy/unstable/download_encrypted/:domain/:mediaId',
+        validate(encryptedRequestSchema),
+        wrapAsyncHandle(encryptedDownloadHandler)
+    );
+    app.get(
+        '/_matrix/media_proxy/unstable/download/:domain/:mediaId',
+        validate(unencryptedRequestSchema),
+        wrapAsyncHandle(downloadHandler)
+    );
+    app.post(
+        '/_matrix/media_proxy/unstable/scan_encrypted/:domain/:mediaId',
+        validate(encryptedRequestSchema),
+        wrapAsyncHandle(encryptedScanReportHandler)
+    );
+    app.get(
+        '/_matrix/media_proxy/unstable/scan/:domain/:mediaId',
+        validate(unencryptedRequestSchema),
+        wrapAsyncHandle(scanReportHandler)
+    );
 }
 
 module.exports = {
