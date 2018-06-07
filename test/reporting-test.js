@@ -33,17 +33,16 @@ describe('reporting.js (end-to-end tests)', () => {
     });
 
     describe('getReport', () => {
-        it('should indicate that a file has not been scanned', async () => {
-            const report = await getReport('some.domain', 'some_media_id', undefined, generateConfig);
+        it('should scan a file that has not been scanned', async () => {
+            const report = await getReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
-            assert.strictEqual(report.clean, false);
-            assert.strictEqual(report.scanned, false);
+            assert.strictEqual(typeof report.clean, 'boolean');
         });
 
         it('should indicate that an unencrypted file has been scanned once it has been fetched and scanned', async () => {
             const result = await generateReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
-            const report = await getReport(example._domain, example._mediaId, undefined, generateConfig);
+            const report = await getReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');
@@ -52,7 +51,7 @@ describe('reporting.js (end-to-end tests)', () => {
         it('should indicate that an encrypted file has been scanned once it has been fetched and scanned', async () => {
             const result = await generateReport(console,  example._domain, example._mediaId, example.file, generateConfig);
 
-            const report = await getReport(example._domain, example._mediaId, example.file, generateConfig);
+            const report = await getReport(console, example._domain, example._mediaId, example.file, generateConfig);
 
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');

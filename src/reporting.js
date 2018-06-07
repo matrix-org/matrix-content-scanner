@@ -49,20 +49,29 @@ function clearReportCache() {
 }
 
 // Get cached report for the given URL
-async function getReport(domain, mediaId, eventContentFile, opts) {
+async function getReport(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl } = opts;
 
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
-    const result = resultCache[resultSecret];
-    if (!result) {
-        return { clean: false, scanned: false, info: 'Secret not recognised, file not scanned.' };
-    }
-
-    const { clean, info } = result;
+    const { clean, info } = resultCache[resultSecret]
+        || await generateReport(console, domain, mediaId, eventContentFile, opts);
 
     return { clean, scanned: true, info };
+}
+
+async function scannedDownload(req, res, domain, mediaId, eventContentFile, opts) {
+    opts.withCleanFile = function(filePath, fn) {
+        req.console.info(`Sending ${filePath} to client`);
+        res.sendFile(filePath, fn);
+    };
+
+    const { clean, info } = await generateReport(req.console, domain, mediaId, eventContentFile, opts);
+
+    if (!clean) {
+        throw new ClientError(403, info);
+    }
 }
 
 // Generate a report on a Matrix file event.
@@ -76,29 +85,51 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
-    if (resultCache[resultSecret] !== undefined) {
-        const result = resultCache[resultSecret];
-        console.info(`Returning cached result: url = ${httpUrl}, clean = ${result.clean}`);
-        return result;
-    }
-
     const tempDir = fs.mkdtempSync(`${tempDirectory}${path.sep}av-`);
-    const filePath = path.join(tempDir, 'unsafeEncryptedFile');
+    const filePath = path.join(tempDir, 'downloadedFile');
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
     try {
         data = await rp({url: httpUrl, encoding: null});
     } catch (err) {
-        console.error(err);
+        console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
         throw new ClientError(502, 'Failed to get requested URL');
     }
 
     fs.writeFileSync(filePath, data);
 
-    let decryptedFilePath;
+    if (resultCache[resultSecret] === undefined) {
+        result = await generateResult(console, eventContentFile, filePath, tempDir, script);
+        resultCache[resultSecret] = result;
+    } else {
+        console.info(`Result previously cached`);
+        result = resultCache[resultSecret];
+    }
+
+    console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
+
+    function cleanUp() {
+        console.info(`Removing ${filePath} and ${tempDir}`);
+        fs.unlinkSync(filePath);
+        fs.rmdirSync(tempDir);
+    }
+
+    if (result.clean && opts.withCleanFile) {
+        opts.withCleanFile(filePath, cleanUp);
+    } else {
+        cleanUp();
+    }
+
+    return result;
+}
+
+async function generateResult(console, eventContentFile, filePath, tempDir, script) {
+    // By default, the file is considered decrypted
+    let decryptedFilePath = filePath;
+
     if (eventContentFile && eventContentFile.key) {
-        decryptedFilePath = path.join(tempDir, 'unsafeFile');
+        decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
 
         try {
@@ -107,32 +138,24 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
             console.error(err);
             throw new ClientError(400, 'Failed to decrypt file');
         }
-    } else {
-        // File is already decrypted
-        decryptedFilePath = filePath;
     }
 
     const cmd = script + ' ' + decryptedFilePath;
     console.info(`Running command ${cmd}`);
     const result = await executeCommand(cmd);
 
-    console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
-
-    result.resultSecret = resultSecret;
-
-    resultCache[resultSecret] = result;
-
-    fs.unlinkSync(filePath);
+    // We don't need the decrypted data, so remove it.
     if (filePath !== decryptedFilePath) {
+        console.info(`Removing ${decryptedFilePath}`);
         fs.unlinkSync(decryptedFilePath);
     }
-    fs.rmdirSync(tempDir);
 
     return result;
 }
 
 module.exports = {
     getReport,
+    scannedDownload,
     generateReport,
     clearReportCache,
 };
