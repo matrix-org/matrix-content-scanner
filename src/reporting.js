@@ -52,6 +52,10 @@ function clearReportCache() {
 async function getReport(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl } = opts;
 
+    if (eventContentFile) {
+        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+    }
+
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
@@ -81,6 +85,10 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
     const { baseUrl, tempDirectory, script } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
         throw new Error('Expected baseUrl, tempDirectory and script in opts');
+    }
+
+    if (eventContentFile) {
+        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
     }
 
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);

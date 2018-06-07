@@ -28,10 +28,6 @@ function wrapAsyncHandle(fn) {
 const { getConfig } = require('./config.js');
 
 const encryptedRequestSchema = {
-    params: {
-        domain: Joi.string().hostname().required(),
-        mediaId: Joi.string().required(),
-    },
     body: {
         file: Joi.object().keys({
             v: Joi.string().required(),
@@ -46,7 +42,8 @@ const encryptedRequestSchema = {
             hashes: Joi.object().keys({
                 sha256: Joi.string().required(),
             }).required(),
-            url: Joi.string().uri(),
+            // mxc://:domain/:mediaId
+            url: Joi.string().uri().required(),
             mimetype: Joi.string(),
         }).required(),
     }
@@ -91,7 +88,7 @@ async function scanReportHandler(req, res, next, file) {
 
 function attachHandlers(app) {
     app.post(
-        '/_matrix/media_proxy/unstable/download_encrypted/:domain/:mediaId',
+        '/_matrix/media_proxy/unstable/download_encrypted',
         validate(encryptedRequestSchema),
         wrapAsyncHandle(encryptedDownloadHandler)
     );
@@ -101,7 +98,7 @@ function attachHandlers(app) {
         wrapAsyncHandle(downloadHandler)
     );
     app.post(
-        '/_matrix/media_proxy/unstable/scan_encrypted/:domain/:mediaId',
+        '/_matrix/media_proxy/unstable/scan_encrypted',
         validate(encryptedRequestSchema),
         wrapAsyncHandle(encryptedScanReportHandler)
     );
