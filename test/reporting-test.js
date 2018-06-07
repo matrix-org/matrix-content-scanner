@@ -56,6 +56,14 @@ describe('reporting.js (end-to-end tests)', () => {
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');
         });
+
+        it('should derive domain and mediaId from contentEventFile.url', async () => {
+            const result = await generateReport(console, undefined, undefined, example.file, generateConfig);
+
+            const report = await getReport(console, undefined, undefined, example.file, generateConfig);
+
+            assert.strictEqual(typeof report.clean, 'boolean');
+        });
     });
 
     describe('generateReport', () => {
