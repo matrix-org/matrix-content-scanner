@@ -88,11 +88,18 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
     const tempDir = await fs.promises.mkdtemp(`${tempDirectory}${path.sep}av-`);
     const filePath = path.join(tempDir, 'downloadedFile');
 
+    async function cleanUp() {
+        console.info(`Removing ${filePath} and ${tempDir}`);
+        await fs.promises.unlink(filePath);
+        await fs.promises.rmdir(tempDir);
+    }
+
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
     try {
         data = await rp({url: httpUrl, encoding: null});
     } catch (err) {
+        await cleanUp();
         console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
         throw new ClientError(502, 'Failed to get requested URL');
     }
@@ -108,12 +115,6 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
     }
 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
-
-    async function cleanUp() {
-        console.info(`Removing ${filePath} and ${tempDir}`);
-        await fs.promises.unlink(filePath);
-        await fs.promises.rmdir(tempDir);
-    }
 
     if (result.clean && opts.withCleanFile) {
         opts.withCleanFile(filePath, cleanUp);
