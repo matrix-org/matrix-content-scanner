@@ -68,6 +68,8 @@ HTTP/1.1 403 Forbidden
 }
 ```
 
+-----
+
 ### `GET .../scan/:domain/:mediaId`
 Retrieve an unencrypted file from the media repo and if it hasn't been scanned since MCS started running, scan it. Response is the result of the last scan.
 
@@ -94,6 +96,8 @@ Response body fields:
  - `clean`: If `true`, the script ran with an exit code of `0`. Otherwise it ran with a non-zero exit code.
  - `info`: Human-readable information about the result.
  
+-----
+
 ### `POST .../download_encrypted` and `POST .../scan_encrypted`
 These are the same as `.../download` and `.../scan` but take input from the POST body.
 
