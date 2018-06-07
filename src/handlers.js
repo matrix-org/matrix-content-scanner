@@ -59,6 +59,39 @@ async function scanHandler(req, res, next) {
     res.status(200).json(responseBody);
 }
 
+const encryptedScanReportSchema = {
+    params: {
+        // The secret that was returned previously by /scan
+        domain: Joi.string().hostname().required(),
+        mediaId: Joi.string().required(),
+    },
+    body: {
+        file: Joi.object().keys({
+            v: Joi.string(),
+            key: Joi.object().keys({
+                alg: Joi.string().required(),
+                ext: Joi.boolean().required(),
+                k: Joi.string().required(),
+                key_ops: Joi.array().items(Joi.string()).required(),
+                kty: Joi.string().required(),
+            }),
+            iv: Joi.string(),
+            hashes: Joi.object().keys({
+                sha256: Joi.string().required(),
+            }),
+            url: Joi.string().uri().required(),
+            mimetype: Joi.string(),
+        // If key is present, v, iv and hashes are required
+        }).with('key', ['v', 'iv', 'hashes']).required(),
+    }
+};
+
+async function encryptedScanReportHandler(req, res, next) {
+    const { file } = req.body;
+
+    unencryptedScanReportHandler(req, res, next, file);
+}
+
 const unencryptedScanReportSchema = {
     params: {
         // The secret that was returned previously by /scan
@@ -67,10 +100,10 @@ const unencryptedScanReportSchema = {
     }
 };
 
-async function unencryptedScanReportHandler(req, res, next) {
+async function unencryptedScanReportHandler(req, res, next, file) {
     const config = getConfig();
     const { domain, mediaId } = req.params;
-    const { clean, scanned, info } = await getReport(domain, mediaId, undefined, config.scan);
+    const { clean, scanned, info } = await getReport(domain, mediaId, file, config.scan);
 
     const responseBody = { clean, scanned, info };
     req.console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, scanned = ${scanned}, clean = ${clean}`);
@@ -80,6 +113,11 @@ async function unencryptedScanReportHandler(req, res, next) {
 
 function attachHandlers(app) {
     app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler));
+    app.post(
+        '/_matrix/media_proxy/unstable/scan_encrypted/:domain/:mediaId',
+        validate(encryptedScanReportSchema),
+        wrapAsyncHandle(encryptedScanReportHandler)
+    );
     app.get(
         '/_matrix/media_proxy/unstable/scan/:domain/:mediaId',
         validate(unencryptedScanReportSchema),
