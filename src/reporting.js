@@ -58,6 +58,8 @@ async function getReport(console, domain, mediaId, eventContentFile, opts) {
     const { clean, info } = resultCache[resultSecret]
         || await generateReport(console, domain, mediaId, eventContentFile, opts);
 
+    console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
+
     return { clean, scanned: true, info };
 }
 

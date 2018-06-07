@@ -85,7 +85,6 @@ async function scanReportHandler(req, res, next, file) {
     const { clean, info } = await getReport(req.console, domain, mediaId, file, config.scan);
 
     const responseBody = { clean, info };
-    req.console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
 
     res.status(200).json(responseBody);
 }
