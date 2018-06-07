@@ -34,25 +34,25 @@ describe('reporting.js (end-to-end tests)', () => {
 
     describe('getReport', () => {
         it('should indicate that a file has not been scanned', async () => {
-            const report = await getReport('some_secret_that_was_not_generated');
+            const report = await getReport('some.domain', 'some_media_id', undefined, generateConfig);
 
             assert.strictEqual(report.clean, false);
             assert.strictEqual(report.scanned, false);
         });
 
         it('should indicate that an unencrypted file has been scanned once it has been fetched and scanned', async () => {
-            const result = await generateReport(console, { url: example.file.url }, generateConfig);
+            const result = await generateReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
-            const report = await getReport(result.resultSecret);
+            const report = await getReport(example._domain, example._mediaId, undefined, generateConfig);
 
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');
         });
 
-        it('should indicate that a file has been scanned once it has been fetched and scanned', async () => {
-            const result = await generateReport(console, example.file, generateConfig);
+        it('should indicate that an encrypted file has been scanned once it has been fetched and scanned', async () => {
+            const result = await generateReport(console,  example._domain, example._mediaId, example.file, generateConfig);
 
-            const report = await getReport(result.resultSecret);
+            const report = await getReport(example._domain, example._mediaId, example.file, generateConfig);
 
             assert.strictEqual(report.scanned, true);
             assert.strictEqual(typeof report.clean, 'boolean');
@@ -61,13 +61,13 @@ describe('reporting.js (end-to-end tests)', () => {
 
     describe('generateReport', () => {
         it('should indicate that a file is clean if the script terminates with exit code 0', async () => {
-            const report = await generateReport(console, example.file, generateConfig);
+            const report = await generateReport(console, example._domain, example._mediaId, example.file, generateConfig);
 
-            assert.strictEqual(report.clean, true, 'the file should marked safe');
+            assert.strictEqual(report.clean, true, 'the file should be marked safe');
         });
 
         it('should provide human-readable info in a report', async () => {
-            const report = await generateReport(console, example.file, generateConfig);
+            const report = await generateReport(console, example._domain, example._mediaId, example.file, generateConfig);
 
             assert.notStrictEqual(report.info, undefined);
         });
@@ -81,7 +81,7 @@ describe('reporting.js (end-to-end tests)', () => {
                 script: "exit 1",
             };
 
-            const report = await generateReport(console, example.file, modifiedConfig);
+            const report = await generateReport(console, example._domain, example._mediaId, example.file, modifiedConfig);
 
             assert.strictEqual(report.clean, false);
         });
@@ -95,7 +95,7 @@ describe('reporting.js (end-to-end tests)', () => {
                 script: "some_script_that_should_not_exist_on_disk.sh",
             };
 
-            const report = await generateReport(console, example.file, modifiedConfig);
+            const report = await generateReport(console, example._domain, example._mediaId, example.file, modifiedConfig);
 
             assert.strictEqual(report.clean, false);
         });

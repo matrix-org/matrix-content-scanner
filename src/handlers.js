@@ -59,28 +59,32 @@ async function scanHandler(req, res, next) {
     res.status(200).json(responseBody);
 }
 
-const scanReportSchema = {
-    body: {
+const unencryptedScanReportSchema = {
+    params: {
         // The secret that was returned previously by /scan
-        secret: Joi.string().required(),
+        domain: Joi.string().hostname().required(),
+        mediaId: Joi.string().required(),
     }
 };
 
-async function scanReportHandler(req, res, next) {
-    const { clean, scanned, info } = await getReport(req.body.secret);
-
-    const { secret } = req.body;
-    const redactedSecret = secret.slice(0, 4) + '...' + secret.slice(-4);
+async function unencryptedScanReportHandler(req, res, next) {
+    const config = getConfig();
+    const { domain, mediaId } = req.params;
+    const { clean, scanned, info } = await getReport(domain, mediaId, undefined, config.scan);
 
     const responseBody = { clean, scanned, info };
-    req.console.info(`Returning scan report: secret = ${redactedSecret} , scanned = ${scanned}, clean = ${clean}`);
+    req.console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, scanned = ${scanned}, clean = ${clean}`);
 
     res.status(200).json(responseBody);
 }
 
 function attachHandlers(app) {
     app.post('/scan', validate(scanSchema), wrapAsyncHandle(scanHandler));
-    app.post('/scan_report', validate(scanReportSchema), wrapAsyncHandle(scanReportHandler));
+    app.get(
+        '/_matrix/media_proxy/unstable/scan/:domain/:mediaId',
+        validate(unencryptedScanReportSchema),
+        wrapAsyncHandle(unencryptedScanReportHandler)
+    );
 }
 
 module.exports = {
