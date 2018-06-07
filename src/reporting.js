@@ -85,7 +85,7 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
-    const tempDir = fs.mkdtempSync(`${tempDirectory}${path.sep}av-`);
+    const tempDir = await fs.promises.mkdtemp(`${tempDirectory}${path.sep}av-`);
     const filePath = path.join(tempDir, 'downloadedFile');
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
@@ -97,7 +97,7 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
         throw new ClientError(502, 'Failed to get requested URL');
     }
 
-    fs.writeFileSync(filePath, data);
+    await fs.promises.writeFile(filePath, data);
 
     if (resultCache[resultSecret] === undefined) {
         result = await generateResult(console, eventContentFile, filePath, tempDir, script);
@@ -109,10 +109,10 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
-    function cleanUp() {
+    async function cleanUp() {
         console.info(`Removing ${filePath} and ${tempDir}`);
-        fs.unlinkSync(filePath);
-        fs.rmdirSync(tempDir);
+        await fs.promises.unlink(filePath);
+        await fs.promises.rmdir(tempDir);
     }
 
     if (result.clean && opts.withCleanFile) {
@@ -147,7 +147,7 @@ async function generateResult(console, eventContentFile, filePath, tempDir, scri
     // We don't need the decrypted data, so remove it.
     if (filePath !== decryptedFilePath) {
         console.info(`Removing ${decryptedFilePath}`);
-        fs.unlinkSync(decryptedFilePath);
+        await fs.promises.unlink(decryptedFilePath);
     }
 
     return result;
