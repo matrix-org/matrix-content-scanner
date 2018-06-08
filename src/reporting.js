@@ -70,7 +70,17 @@ async function getReport(console, domain, mediaId, eventContentFile, opts) {
 async function scannedDownload(req, res, domain, mediaId, eventContentFile, opts) {
     opts.withCleanFile = function(filePath, headers, fn) {
         req.console.info(`Sending ${filePath} to client`);
-        res.set(headers);
+
+        const responseHeaders = {};
+        const headerWhitelist = [
+            'content-type',
+            'content-disposition',
+            'content-security-policy',
+        ];
+        // Copy headers from media download to response
+        headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+        res.set(responseHeaders);
         res.sendFile(filePath, fn);
     };
 
