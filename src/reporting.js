@@ -112,15 +112,15 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     try {
         downloadHeaders = await new Promise((resolve, reject) => {
-            let downloadHeaders;
+            let responseHeaders;
             request
                 .get({url: httpUrl, encoding: null})
                 .on('error', reject)
                 .on('response', (response) => {
-                    downloadHeaders = response.headers;
+                    responseHeaders = response.headers;
                 })
                 .on('end', () => {
-                    resolve(downloadHeaders);
+                    resolve(responseHeaders);
                 })
                 .pipe(fs.createWriteStream(filePath));
         });
