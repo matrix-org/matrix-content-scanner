@@ -46,5 +46,6 @@ function loadConfig(filePath) {
 
 module.exports = {
     loadConfig,
+    setConfig: (c) => config = c,
     getConfig: () => config,
 }
