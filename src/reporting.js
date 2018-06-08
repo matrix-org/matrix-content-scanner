@@ -91,8 +91,33 @@ async function scannedDownload(req, res, domain, mediaId, eventContentFile, opts
     }
 }
 
+function getResultSecret(_, domain, mediaId, eventContentFile, opts) {
+    if (eventContentFile) {
+        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+    }
+    // Deduplicate by returning existing promises for ongoing requests that share result hashes
+    const httpUrl = generateHttpUrl(opts.baseUrl, domain, mediaId);
+    return generateResultHash(httpUrl, eventContentFile);
+}
+
+// Deduplicate concurrent requests if getKey returns an identical value for identical requests
+function deduplicatePromises(getKey, asyncFn) {
+    const ongoing = {};
+    return async (...args) => {
+        const k = getKey(...args);
+
+        if(!ongoing[k]) {
+            ongoing[k] = asyncFn(...args).finally((res) => {delete ongoing[k]; return res;});
+        }
+
+        return await ongoing[k];
+    };
+}
+
+const generateReport = deduplicatePromises(getResultSecret, _generateReport);
+
 // Generate a report on a Matrix file event.
-async function generateReport(console, domain, mediaId, eventContentFile, opts) {
+async function _generateReport(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl, tempDirectory, script } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
         throw new Error('Expected baseUrl, tempDirectory and script in opts');
