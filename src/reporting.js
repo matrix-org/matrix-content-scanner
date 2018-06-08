@@ -48,8 +48,30 @@ function clearReportCache() {
     resultCache = {};
 }
 
+const rimraf = require('rimraf');
+function withTempDir(asyncFn) {
+    return async (...args) => {
+        const opts = args[args.length - 1];
+        const { tempDirectory } = opts;
+
+        const tempDir = await fs.promises.mkdtemp(`${tempDirectory}${path.sep}av-`);
+
+        // Copy all options, overide tempDir
+        args[args.length - 1] = Object.assign({}, opts, {tempDirectory: tempDir});
+
+        let result;
+        try {
+            result = await asyncFn(...args);
+        } finally {
+            await new Promise((resolve, reject) => rimraf(tempDir, (err) => err ? reject(err) : resolve()));
+        }
+
+        return result;
+    }
+}
+
 // Get cached report for the given URL
-async function getReport(console, domain, mediaId, eventContentFile, opts) {
+const getReport = withTempDir(async function(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl } = opts;
 
     if (eventContentFile) {
@@ -65,38 +87,65 @@ async function getReport(console, domain, mediaId, eventContentFile, opts) {
     console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
 
     return { clean, scanned: true, info };
-}
+});
 
-async function scannedDownload(req, res, domain, mediaId, eventContentFile, opts) {
-    opts.withCleanFile = function(filePath, headers, fn) {
-        req.console.info(`Sending ${filePath} to client`);
-
-        const responseHeaders = {};
-        const headerWhitelist = [
-            'content-type',
-            'content-disposition',
-            'content-security-policy',
-        ];
-        // Copy headers from media download to response
-        headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
-
-        res.set(responseHeaders);
-        res.sendFile(filePath, fn);
-    };
-
-    const { clean, info } = await generateReport(req.console, domain, mediaId, eventContentFile, opts);
+const scannedDownload = withTempDir(async function (req, res, domain, mediaId, eventContentFile, opts) {
+    const {
+        clean, info, filePath, headers
+    } = await generateReport(req.console, domain, mediaId, eventContentFile, opts);
 
     if (!clean) {
         throw new ClientError(403, info);
     }
+
+    req.console.info(`Sending ${filePath} to client`);
+
+    const responseHeaders = {};
+    const headerWhitelist = [
+        'content-type',
+        'content-disposition',
+        'content-security-policy',
+    ];
+    // Copy headers from media download to response
+    headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+    res.set(responseHeaders);
+    res.sendFile(filePath);
+});
+
+// XXX: The result of this function is calculated similarly in a lot of places.
+function getInputHash(_, domain, mediaId, eventContentFile, opts) {
+    if (eventContentFile) {
+        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+    }
+    const httpUrl = generateHttpUrl(opts.baseUrl, domain, mediaId);
+    return generateResultHash(httpUrl, eventContentFile);
 }
 
+// Deduplicate concurrent requests if getKey returns an identical value for identical requests
+function deduplicatePromises(getKey, asyncFn) {
+    const ongoing = {};
+    return async (...args) => {
+        const k = getKey(...args);
+
+        if(!ongoing[k]) {
+            ongoing[k] = asyncFn(...args).finally((res) => {delete ongoing[k]; return res;});
+        }
+
+        return await ongoing[k];
+    };
+}
+
+const generateReport = deduplicatePromises(getInputHash, _generateReport);
+
 // Generate a report on a Matrix file event.
-async function generateReport(console, domain, mediaId, eventContentFile, opts) {
+async function _generateReport(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl, tempDirectory, script } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
         throw new Error('Expected baseUrl, tempDirectory and script in opts');
     }
+
+    const tempDir = tempDirectory;
 
     if (eventContentFile) {
         [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
@@ -106,14 +155,7 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
-    const tempDir = await fs.promises.mkdtemp(`${tempDirectory}${path.sep}av-`);
     const filePath = path.join(tempDir, 'downloadedFile');
-
-    async function cleanUp() {
-        console.info(`Removing ${filePath} and ${tempDir}`);
-        await fs.promises.unlink(filePath);
-        await fs.promises.rmdir(tempDir);
-    }
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
@@ -141,7 +183,6 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
         console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
 
-        await cleanUp();
         throw new ClientError(502, 'Failed to get requested URL');
     }
 
@@ -155,11 +196,8 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
-    if (result.clean && opts.withCleanFile) {
-        opts.withCleanFile(filePath, downloadHeaders, cleanUp);
-    } else {
-        cleanUp();
-    }
+    result.filePath = filePath;
+    result.headers = downloadHeaders;
 
     return result;
 }
@@ -183,12 +221,6 @@ async function generateResult(console, eventContentFile, filePath, tempDir, scri
     const cmd = script + ' ' + decryptedFilePath;
     console.info(`Running command ${cmd}`);
     const result = await executeCommand(cmd);
-
-    // We don't need the decrypted data, so remove it.
-    if (filePath !== decryptedFilePath) {
-        console.info(`Removing ${decryptedFilePath}`);
-        await fs.promises.unlink(decryptedFilePath);
-    }
 
     return result;
 }
