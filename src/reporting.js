@@ -117,7 +117,6 @@ function getResultSecret(_, domain, mediaId, eventContentFile, opts) {
     if (eventContentFile) {
         [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
     }
-    // Deduplicate by returning existing promises for ongoing requests that share result hashes
     const httpUrl = generateHttpUrl(opts.baseUrl, domain, mediaId);
     return generateResultHash(httpUrl, eventContentFile);
 }
