@@ -113,7 +113,8 @@ const scannedDownload = withTempDir(async function (req, res, domain, mediaId, e
     res.sendFile(filePath);
 });
 
-function getResultSecret(_, domain, mediaId, eventContentFile, opts) {
+// XXX: The result of this function is calculated similarly in a lot of places.
+function getInputHash(_, domain, mediaId, eventContentFile, opts) {
     if (eventContentFile) {
         [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
     }
@@ -135,7 +136,7 @@ function deduplicatePromises(getKey, asyncFn) {
     };
 }
 
-const generateReport = deduplicatePromises(getResultSecret, _generateReport);
+const generateReport = deduplicatePromises(getInputHash, _generateReport);
 
 // Generate a report on a Matrix file event.
 async function _generateReport(console, domain, mediaId, eventContentFile, opts) {
