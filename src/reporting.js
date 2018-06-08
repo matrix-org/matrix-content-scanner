@@ -18,7 +18,7 @@ limitations under the License.
 
 const path = require('path');
 const fs = require('fs');
-const rp = require('request-promise');
+const request = require('request');
 
 const ClientError = require('./client-error.js');
 const executeCommand = require('./execute-cmd.js');
@@ -68,8 +68,19 @@ async function getReport(console, domain, mediaId, eventContentFile, opts) {
 }
 
 async function scannedDownload(req, res, domain, mediaId, eventContentFile, opts) {
-    opts.withCleanFile = function(filePath, fn) {
+    opts.withCleanFile = function(filePath, headers, fn) {
         req.console.info(`Sending ${filePath} to client`);
+
+        const responseHeaders = {};
+        const headerWhitelist = [
+            'content-type',
+            'content-disposition',
+            'content-security-policy',
+        ];
+        // Copy headers from media download to response
+        headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+        res.set(responseHeaders);
         res.sendFile(filePath, fn);
     };
 
@@ -106,15 +117,33 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
+    let downloadHeaders;
+    let response;
+
     try {
-        data = await rp({url: httpUrl, encoding: null});
+        downloadHeaders = await new Promise((resolve, reject) => {
+            let responseHeaders;
+            request
+                .get({url: httpUrl, encoding: null})
+                .on('error', reject)
+                .on('response', (response) => {
+                    responseHeaders = response.headers;
+                })
+                .on('end', () => {
+                    resolve(responseHeaders);
+                })
+                .pipe(fs.createWriteStream(filePath));
+        });
     } catch (err) {
-        await cleanUp();
+        if (!err.statusCode) {
+            throw err;
+        }
+
         console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
+
+        await cleanUp();
         throw new ClientError(502, 'Failed to get requested URL');
     }
-
-    await fs.promises.writeFile(filePath, data);
 
     if (resultCache[resultSecret] === undefined) {
         result = await generateResult(console, eventContentFile, filePath, tempDir, script);
@@ -127,7 +156,7 @@ async function generateReport(console, domain, mediaId, eventContentFile, opts) 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
     if (result.clean && opts.withCleanFile) {
-        opts.withCleanFile(filePath, cleanUp);
+        opts.withCleanFile(filePath, downloadHeaders, cleanUp);
     } else {
         cleanUp();
     }
