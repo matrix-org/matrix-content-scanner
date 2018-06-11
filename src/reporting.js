@@ -25,12 +25,16 @@ const executeCommand = require('./execute-cmd.js');
 const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
+
+// Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
     const hash = crypto.createHash('sha256');
     hash.update(s);
     return hash.digest('base64');
 }
 
+// Generate a hash that changes if the report is for a different MXC URL or
+// different matrixFile, which importantly changes if the decryption keys change.
 function generateReportHash(httpUrl, matrixFile=undefined) {
     // Result is cached against the hash of the input. Just using an MXC would
     // potentially allow an attacker to mark a file as clean without having the
@@ -38,6 +42,7 @@ function generateReportHash(httpUrl, matrixFile=undefined) {
     return base64sha256(JSON.stringify({ httpUrl, matrixFile }));
 }
 
+// Transform MXC components into HTTP URL
 function generateHttpUrl(baseUrl, domain, mediaId) {
     return `${baseUrl}/_matrix/media/v1/download/${domain}/${mediaId}`;
 }
@@ -48,7 +53,22 @@ function clearReportCache() {
     reportCache = {};
 }
 
-// Get cached report for the given URL
+/**
+ * Get cached report for the given input. If the domain, mediaId, matrixFile tuple has
+ * been given to generateReport previously, then the cached result will be returned.
+ * @param {object} console The console object to use for logging.
+ * @param {string} domain The domain part of the MXC.
+ * @param {string} mediaId The media ID part of the MXC.
+ * @param {string} matrixFile Content under the "[thumbnail]_file" key in an encrypted matrix file event.
+ * Optional. If not specified, no decryption step is taken.
+ * @param {object} opts Options for getting the report.
+ * @param {string} opts.baseUrl The URL of the homeserver to request media from.
+ *
+ * @returns {Promise} A promise that resolves with a report:
+ * ```
+ *  { clean: false, scanned: true, info: "Some information gathered in the scan" }
+ * ```
+ **/
 const getReport = async function(console, domain, mediaId, matrixFile, opts) {
     const { baseUrl } = opts;
 
@@ -95,7 +115,33 @@ function deduplicatePromises(getKey, asyncFn) {
 
 const generateReportFromDownload = deduplicatePromises(getInputHash, _generateReportFromDownload);
 
-// Generate a report on a Matrix file event.
+/**
+ * Download a matrix media file and generate and cache a scan report for it.
+ *
+ * @param {object} console The console object to use for logging.
+ * @param {string} domain The domain part of the MXC.
+ * @param {string} mediaId The media ID part of the MXC.
+ * @param {string} matrixFile The content of a matrix file event. (Or "[thumbnail]_file" under an
+ * encrypted file event.
+ * @param {object} opts Options for generating a report.
+ * @param {string} opts.baseUrl The URL of the homeserver to request media from.
+ * @param {string} opts.tempDirectory The path to a directory where files can be written.
+ * @param {string} opts.script The script to run against the downloaded file.
+ *
+ * @returns {Promise} A promise that resolves with a report:
+ * ```
+ *  {
+ *      clean: false,
+ *      scanned: true,
+ *      info: "Some information gathered in the scan",
+ *
+ *      filePath: "/some/path/to/the/downloaded/file",
+ *
+ *      // HTTP headers acquire in the GET to the media repository
+ *      headers: [...],
+ *  }
+ * ```
+ **/
 async function _generateReportFromDownload(console, domain, mediaId, matrixFile, opts) {
     const { baseUrl, tempDirectory, script } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
@@ -151,6 +197,26 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
     return result;
 }
 
+/**
+ * Generate and cache a scan report for a given [enrcypted] file.
+ *
+ * @param {object} console The console object to use for logging.
+ * @param {string} httpUrl The HTTP URL used to retreive the file.
+ * @param {string} matrixFile Content under the "[thumbnail]_file" key in an encrypted matrix file event.
+ * Optional. If not specified, no decryption step is taken.
+ * @param {string} filePath The path of the file to [decrypt and] scan.
+ * @param {string} tempDir The path to a directory where files can be written.
+ * @param {string} script The script to run against the file.
+ *
+ * @returns {Promise} A promise that resolves with a report:
+ * ```
+ *  {
+ *      clean: false,
+ *      scanned: true,
+ *      info: "Some information gathered in the scan",
+ *  }
+ * ```
+ **/
 async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, script) {
     const reportHash = generateReportHash(httpUrl, matrixFile);
     if (reportCache[reportHash] !== undefined) {
