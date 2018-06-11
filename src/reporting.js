@@ -229,5 +229,7 @@ module.exports = {
     getReport,
     scannedDownload,
     generateReport,
+    generateResult,
+    generateHttpUrl,
     clearReportCache,
 };
