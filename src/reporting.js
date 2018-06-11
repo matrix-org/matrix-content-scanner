@@ -90,6 +90,12 @@ const getReport = withTempDir(async function(console, domain, mediaId, eventCont
 });
 
 const scannedDownload = withTempDir(async function (req, res, domain, mediaId, eventContentFile, opts) {
+    const cachedReport = getReport(req.console, domain, mediaId, eventContentFile, opts);
+
+    if (cachedReport.scanned && !cachedReport.clean) {
+        throw new ClientError(403, cachedReport.info);
+    }
+
     const {
         clean, info, filePath, headers
     } = await generateReport(req.console, domain, mediaId, eventContentFile, opts);
