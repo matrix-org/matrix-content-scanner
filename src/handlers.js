@@ -67,7 +67,7 @@ async function downloadHandler(req, res, next, matrixFile) {
 
     const { domain, mediaId } = req.params;
 
-    const cachedReport = await getReport(req.console, domain, mediaId, eventContentFile, opts);
+    const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
 
     if (cachedReport.scanned && !cachedReport.clean) {
         throw new ClientError(403, cachedReport.info);
