@@ -173,7 +173,6 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
     return result;
 }
 
-// XXX: generateReport
 async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, script) {
     const reportHash = generateReportHash(httpUrl, matrixFile);
     if (reportCache[reportHash] !== undefined) {
