@@ -153,8 +153,6 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
 
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
 
-    const resultSecret = generateResultHash(httpUrl, eventContentFile);
-
     const filePath = path.join(tempDir, 'downloadedFile');
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
@@ -186,13 +184,7 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
         throw new ClientError(502, 'Failed to get requested URL');
     }
 
-    if (resultCache[resultSecret] === undefined) {
-        result = await generateResult(console, eventContentFile, filePath, tempDir, script);
-        resultCache[resultSecret] = result;
-    } else {
-        console.info(`Result previously cached`);
-        result = resultCache[resultSecret];
-    }
+    result = await generateResult(console, httpUrl, eventContentFile, filePath, tempDir, script);
 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
@@ -202,7 +194,13 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
     return result;
 }
 
-async function generateResult(console, eventContentFile, filePath, tempDir, script) {
+async function generateResult(console, httpUrl, eventContentFile, filePath, tempDir, script) {
+    const resultSecret = generateResultHash(httpUrl, eventContentFile);
+    if (resultCache[resultSecret] !== undefined) {
+        console.info(`Result previously cached`);
+        return resultCache[resultSecret];
+    }
+
     // By default, the file is considered decrypted
     let decryptedFilePath = filePath;
 
@@ -221,6 +219,8 @@ async function generateResult(console, eventContentFile, filePath, tempDir, scri
     const cmd = script + ' ' + decryptedFilePath;
     console.info(`Running command ${cmd}`);
     const result = await executeCommand(cmd);
+
+    resultCache[resultSecret] = result;
 
     return result;
 }
