@@ -71,7 +71,7 @@ function withTempDir(asyncFn) {
 }
 
 // Get cached report for the given URL
-const getReport = withTempDir(async function(console, domain, mediaId, eventContentFile, opts) {
+const getReport = async function(console, domain, mediaId, eventContentFile, opts) {
     const { baseUrl } = opts;
 
     if (eventContentFile) {
@@ -90,7 +90,7 @@ const getReport = withTempDir(async function(console, domain, mediaId, eventCont
     console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
 
     return { clean, scanned: true, info };
-});
+};
 
 const scannedDownload = withTempDir(async function (req, res, domain, mediaId, eventContentFile, opts) {
     const {
