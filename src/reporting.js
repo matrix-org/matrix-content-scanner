@@ -31,11 +31,11 @@ function base64sha256(s) {
     return hash.digest('base64');
 }
 
-function generateResultHash(httpUrl, eventContentFile=undefined) {
+function generateResultHash(httpUrl, matrixFile=undefined) {
     // Result is cached against the hash of the input. Just using an MXC would
     // potentially allow an attacker to mark a file as clean without having the
     // keys to correctly decrypt it.
-    return base64sha256(JSON.stringify({ httpUrl, eventContentFile }));
+    return base64sha256(JSON.stringify({ httpUrl, matrixFile }));
 }
 
 function generateHttpUrl(baseUrl, domain, mediaId) {
@@ -71,15 +71,15 @@ function withTempDir(asyncFn) {
 }
 
 // Get cached report for the given URL
-const getReport = async function(console, domain, mediaId, eventContentFile, opts) {
+const getReport = async function(console, domain, mediaId, matrixFile, opts) {
     const { baseUrl } = opts;
 
-    if (eventContentFile) {
-        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+    if (matrixFile) {
+        [domain, mediaId] = matrixFile.url.split('/').slice(-2);
     }
 
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
-    const resultSecret = generateResultHash(httpUrl, eventContentFile);
+    const resultSecret = generateResultHash(httpUrl, matrixFile);
 
     if (!resultCache[resultSecret]) {
         console.info(`File not scanned yet: domain = ${domain}, mediaId = ${mediaId}`);
@@ -92,10 +92,10 @@ const getReport = async function(console, domain, mediaId, eventContentFile, opt
     return { clean, scanned: true, info };
 };
 
-const scannedDownload = withTempDir(async function (req, res, domain, mediaId, eventContentFile, opts) {
+const scannedDownload = withTempDir(async function (req, res, domain, mediaId, matrixFile, opts) {
     const {
         clean, info, filePath, headers
-    } = await generateReport(req.console, domain, mediaId, eventContentFile, opts);
+    } = await generateReport(req.console, domain, mediaId, matrixFile, opts);
 
     if (!clean) {
         throw new ClientError(403, info);
@@ -117,12 +117,12 @@ const scannedDownload = withTempDir(async function (req, res, domain, mediaId, e
 });
 
 // XXX: The result of this function is calculated similarly in a lot of places.
-function getInputHash(_, domain, mediaId, eventContentFile, opts) {
-    if (eventContentFile) {
-        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+function getInputHash(_, domain, mediaId, matrixFile, opts) {
+    if (matrixFile) {
+        [domain, mediaId] = matrixFile.url.split('/').slice(-2);
     }
     const httpUrl = generateHttpUrl(opts.baseUrl, domain, mediaId);
-    return generateResultHash(httpUrl, eventContentFile);
+    return generateResultHash(httpUrl, matrixFile);
 }
 
 // Deduplicate concurrent requests if getKey returns an identical value for identical requests
@@ -142,7 +142,7 @@ function deduplicatePromises(getKey, asyncFn) {
 const generateReport = deduplicatePromises(getInputHash, _generateReport);
 
 // Generate a report on a Matrix file event.
-async function _generateReport(console, domain, mediaId, eventContentFile, opts) {
+async function _generateReport(console, domain, mediaId, matrixFile, opts) {
     const { baseUrl, tempDirectory, script } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
         throw new Error('Expected baseUrl, tempDirectory and script in opts');
@@ -150,8 +150,8 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
 
     const tempDir = tempDirectory;
 
-    if (eventContentFile) {
-        [domain, mediaId] = eventContentFile.url.split('/').slice(-2);
+    if (matrixFile) {
+        [domain, mediaId] = matrixFile.url.split('/').slice(-2);
     }
 
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
@@ -187,7 +187,7 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
         throw new ClientError(502, 'Failed to get requested URL');
     }
 
-    result = await generateResult(console, httpUrl, eventContentFile, filePath, tempDir, script);
+    result = await generateResult(console, httpUrl, matrixFile, filePath, tempDir, script);
 
     console.info(`Result: url = "${httpUrl}", clean = ${result.clean}, exit code = ${result.exitCode}`);
 
@@ -197,8 +197,8 @@ async function _generateReport(console, domain, mediaId, eventContentFile, opts)
     return result;
 }
 
-async function generateResult(console, httpUrl, eventContentFile, filePath, tempDir, script) {
-    const resultSecret = generateResultHash(httpUrl, eventContentFile);
+async function generateResult(console, httpUrl, matrixFile, filePath, tempDir, script) {
+    const resultSecret = generateResultHash(httpUrl, matrixFile);
     if (resultCache[resultSecret] !== undefined) {
         console.info(`Result previously cached`);
         return resultCache[resultSecret];
@@ -207,12 +207,12 @@ async function generateResult(console, httpUrl, eventContentFile, filePath, temp
     // By default, the file is considered decrypted
     let decryptedFilePath = filePath;
 
-    if (eventContentFile && eventContentFile.key) {
+    if (matrixFile && matrixFile.key) {
         decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
 
         try {
-            decryptFile(filePath, decryptedFilePath, eventContentFile);
+            decryptFile(filePath, decryptedFilePath, matrixFile);
         } catch (err) {
             console.error(err);
             throw new ClientError(400, 'Failed to decrypt file');

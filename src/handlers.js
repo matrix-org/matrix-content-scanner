@@ -57,32 +57,32 @@ const unencryptedRequestSchema = {
 };
 
 async function encryptedDownloadHandler(req, res, next) {
-    const { file } = req.body;
+    const matrixFile = req.body.file;
 
-    return downloadHandler(req, res, next, file);
+    return downloadHandler(req, res, next, matrixFile);
 }
 
-async function downloadHandler(req, res, next, file) {
+async function downloadHandler(req, res, next, matrixFile) {
     const config = getConfig();
 
     const { domain, mediaId } = req.params;
 
-    return scannedDownload(req, res, domain, mediaId, file, config.scan);
+    return scannedDownload(req, res, domain, mediaId, matrixFile, config.scan);
 }
 
 async function encryptedScanReportHandler(req, res, next) {
-    const { file } = req.body;
+    const matrixFile = req.body.file;
 
-    return scanReportHandler(req, res, next, file);
+    return scanReportHandler(req, res, next, matrixFile);
 }
 
-async function scanReportHandler(req, res, next, file) {
+async function scanReportHandler(req, res, next, matrixFile) {
     const config = getConfig();
     const { domain, mediaId } = req.params;
-    let result = await getReport(req.console, domain, mediaId, file, config.scan);
+    let result = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
 
     if (!result.scanned) {
-       result = await generateReport(req.console, domain, mediaId, file, config.scan);
+       result = await generateReport(req.console, domain, mediaId, matrixFile, config.scan);
     }
 
     const { clean, info } = result;
