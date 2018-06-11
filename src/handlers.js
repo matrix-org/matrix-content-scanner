@@ -20,6 +20,7 @@ const Joi = require('joi');
 const validate = require('express-validation');
 
 const { getReport, generateReportFromDownload } = require('./reporting.js');
+const withTempDir = require('./with-temp-dir.js');
 
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
@@ -73,6 +74,10 @@ async function downloadHandler(req, res, next, matrixFile) {
         throw new ClientError(403, cachedReport.info);
     }
 
+    await withTempDir(config.scan.tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, config);
+}
+
+async function proxyDownload(req, res, domain, mediaId, matrixFile, config) {
     const {
         clean, info, filePath, headers
     } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, config.scan);
@@ -108,7 +113,10 @@ async function scanReportHandler(req, res, next, matrixFile) {
     let result = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
 
     if (!result.scanned) {
-       result = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, config.scan);
+        result = await withTempDir(
+            config.scan.tempDirectory,
+            generateReportFromDownload
+        )(req.console, domain, mediaId, matrixFile, config.scan);
     }
 
     const { clean, info } = result;
