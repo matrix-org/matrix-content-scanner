@@ -19,7 +19,6 @@ limitations under the License.
 const {
     getReport,
     generateReport,
-    generateResult,
     generateHttpUrl,
     clearReportCache,
 } = require('../src/reporting.js');
@@ -34,8 +33,8 @@ const generateConfig = {
 
 const example = require('../example.file.json');
 
-function generateResultFromFile(config = generateConfig) {
-    return generateResult(
+function generateReportFromFile(config = generateConfig) {
+    return generateReport(
         console,
         generateHttpUrl(config.baseUrl, example._domain, example._mediaId),
         undefined,
@@ -45,8 +44,8 @@ function generateResultFromFile(config = generateConfig) {
     );
 }
 
-function generateDecryptedResultFromFile(config = generateConfig) {
-    return generateResult(
+function generateDecryptedReportFromFile(config = generateConfig) {
+    return generateReport(
         console,
         generateHttpUrl(config.baseUrl, example._domain, example._mediaId),
         example.file,
@@ -70,7 +69,7 @@ describe('reporting.js', () => {
         });
 
         it('should indicate that an unencrypted file has been scanned once it has been fetched and scanned', async () => {
-            const result = await generateResultFromFile();
+            const result = await generateReportFromFile();
 
             const report = await getReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
@@ -79,7 +78,7 @@ describe('reporting.js', () => {
         });
 
         it('should indicate that an encrypted file has been scanned once it has been fetched and scanned', async () => {
-            const result = await generateDecryptedResultFromFile();
+            const result = await generateDecryptedReportFromFile();
 
             const report = await getReport(console, example._domain, example._mediaId, example.file, generateConfig);
 
@@ -88,7 +87,7 @@ describe('reporting.js', () => {
         });
 
         it('should derive domain and mediaId from contentEventFile.url', async () => {
-            const result = await generateDecryptedResultFromFile();
+            const result = await generateDecryptedReportFromFile();
 
             const report = await getReport(console, undefined, undefined, example.file, generateConfig);
 
@@ -96,15 +95,15 @@ describe('reporting.js', () => {
         });
     });
 
-    describe('generateResult', () => {
+    describe('generateReport', () => {
         it('should indicate that a file is clean if the script terminates with exit code 0', async () => {
-            const report = await generateDecryptedResultFromFile();
+            const report = await generateDecryptedReportFromFile();
 
             assert.strictEqual(report.clean, true, 'the file should be marked safe');
         });
 
         it('should provide human-readable info in a report', async () => {
-            const report = await generateDecryptedResultFromFile();
+            const report = await generateDecryptedReportFromFile();
 
             assert.notStrictEqual(report.info, undefined);
         });
@@ -117,7 +116,7 @@ describe('reporting.js', () => {
                 // Script that will always mark a file as unsafe
                 script: "exit 1",
             };
-            const report = await generateDecryptedResultFromFile(modifiedConfig);
+            const report = await generateDecryptedReportFromFile(modifiedConfig);
 
             assert.strictEqual(report.clean, false);
         });
@@ -131,7 +130,7 @@ describe('reporting.js', () => {
                 script: "some_script_that_should_not_exist_on_disk.sh",
             };
 
-            const report = await generateDecryptedResultFromFile(modifiedConfig);
+            const report = await generateDecryptedReportFromFile(modifiedConfig);
 
             assert.strictEqual(report.clean, false);
         });
