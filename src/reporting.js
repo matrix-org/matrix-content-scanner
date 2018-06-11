@@ -48,28 +48,6 @@ function clearReportCache() {
     reportCache = {};
 }
 
-const rimraf = require('rimraf');
-function withTempDir(asyncFn) {
-    return async (...args) => {
-        const opts = args[args.length - 1];
-        const { tempDirectory } = opts;
-
-        const tempDir = await fs.promises.mkdtemp(`${tempDirectory}${path.sep}av-`);
-
-        // Copy all options, overide tempDir
-        args[args.length - 1] = Object.assign({}, opts, {tempDirectory: tempDir});
-
-        let result;
-        try {
-            result = await asyncFn(...args);
-        } finally {
-            await new Promise((resolve, reject) => rimraf(tempDir, (err) => err ? reject(err) : resolve()));
-        }
-
-        return result;
-    }
-}
-
 // Get cached report for the given URL
 const getReport = async function(console, domain, mediaId, matrixFile, opts) {
     const { baseUrl } = opts;
