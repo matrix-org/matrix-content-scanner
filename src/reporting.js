@@ -206,7 +206,6 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
 module.exports = {
     getReport,
-    scannedDownload,
     generateReportFromDownload,
     generateReport,
     generateHttpUrl,
