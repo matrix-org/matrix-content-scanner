@@ -19,7 +19,7 @@ limitations under the License.
 const Joi = require('joi');
 const validate = require('express-validation');
 
-const { getReport, scannedDownload } = require('./reporting.js');
+const { getReport, generateReport, scannedDownload } = require('./reporting.js');
 
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
@@ -79,7 +79,13 @@ async function encryptedScanReportHandler(req, res, next) {
 async function scanReportHandler(req, res, next, file) {
     const config = getConfig();
     const { domain, mediaId } = req.params;
-    const { clean, info } = await getReport(req.console, domain, mediaId, file, config.scan);
+    let result = await getReport(req.console, domain, mediaId, file, config.scan);
+
+    if (!result.scanned) {
+       result = await generateReport(req.console, domain, mediaId, file, config.scan);
+    }
+
+    const { clean, info } = result;
 
     const responseBody = { clean, info };
 

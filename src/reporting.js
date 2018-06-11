@@ -81,8 +81,11 @@ const getReport = withTempDir(async function(console, domain, mediaId, eventCont
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId);
     const resultSecret = generateResultHash(httpUrl, eventContentFile);
 
-    const { clean, info } = resultCache[resultSecret]
-        || await generateReport(console, domain, mediaId, eventContentFile, opts);
+    if (!resultCache[resultSecret]) {
+        console.info(`File not scanned yet: domain = ${domain}, mediaId = ${mediaId}`);
+        return { scanned: false };
+    }
+    const { clean, info } = resultCache[resultSecret];
 
     console.info(`Returning scan report: domain = ${domain}, mediaId = ${mediaId}, clean = ${clean}`);
 

@@ -62,10 +62,11 @@ describe('reporting.js', () => {
     });
 
     describe('getReport', () => {
-        it('should scan a file that has not been scanned', async () => {
+        it('should indicate that a file has not yet been scanned', async () => {
             const report = await getReport(console, example._domain, example._mediaId, undefined, generateConfig);
 
-            assert.strictEqual(typeof report.clean, 'boolean');
+            assert.strictEqual(report.scanned, false);
+            assert.strictEqual(report.clean, undefined);
         });
 
         it('should indicate that an unencrypted file has been scanned once it has been fetched and scanned', async () => {
