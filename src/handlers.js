@@ -67,7 +67,27 @@ async function downloadHandler(req, res, next, matrixFile) {
 
     const { domain, mediaId } = req.params;
 
-    return scannedDownload(req, res, domain, mediaId, matrixFile, config.scan);
+    const {
+        clean, info, filePath, headers
+    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, config.scan);
+
+    if (!clean) {
+        throw new ClientError(403, info);
+    }
+
+    req.console.info(`Sending ${filePath} to client`);
+
+    const responseHeaders = {};
+    const headerWhitelist = [
+        'content-type',
+        'content-disposition',
+        'content-security-policy',
+    ];
+    // Copy headers from media download to response
+    headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+    res.set(responseHeaders);
+    res.sendFile(filePath);
 }
 
 async function encryptedScanReportHandler(req, res, next) {

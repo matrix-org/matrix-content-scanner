@@ -92,30 +92,6 @@ const getReport = async function(console, domain, mediaId, matrixFile, opts) {
     return { clean, scanned: true, info };
 };
 
-const scannedDownload = withTempDir(async function (req, res, domain, mediaId, matrixFile, opts) {
-    const {
-        clean, info, filePath, headers
-    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, opts);
-
-    if (!clean) {
-        throw new ClientError(403, info);
-    }
-
-    req.console.info(`Sending ${filePath} to client`);
-
-    const responseHeaders = {};
-    const headerWhitelist = [
-        'content-type',
-        'content-disposition',
-        'content-security-policy',
-    ];
-    // Copy headers from media download to response
-    headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
-
-    res.set(responseHeaders);
-    res.sendFile(filePath);
-});
-
 // XXX: The result of this function is calculated similarly in a lot of places.
 function getInputHash(_, domain, mediaId, matrixFile, opts) {
     if (matrixFile) {
