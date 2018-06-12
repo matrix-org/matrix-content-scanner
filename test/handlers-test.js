@@ -17,6 +17,7 @@ limitations under the License.
 **/
 
 const request = require('supertest');
+const assert = require('assert');
 
 const { clearReportCache } = require('../src/reporting.js');
 const app = require('../src/app.js').createApp();
@@ -32,6 +33,7 @@ setConfig({
     }
 });
 
+// XXX: These tests still don't make use of example.file.data
 describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
     beforeEach(() => {
         clearReportCache();
@@ -42,5 +44,21 @@ describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSG
             .get('/_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt')
             .expect('Content-Type', /png/)
             .expect(200);
+    });
+});
+
+describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
+    beforeEach(() => {
+        clearReportCache();
+    });
+
+    it('responds with the requested scan (when the file has not been scanned before)',  () => {
+        return request(app)
+            .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then(response => {
+                assert(response.body.clean, true);
+            });
     });
 });

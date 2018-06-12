@@ -19,7 +19,8 @@ limitations under the License.
 const Joi = require('joi');
 const validate = require('express-validation');
 
-const { getReport, scannedDownload } = require('./reporting.js');
+const { getReport, generateReportFromDownload } = require('./reporting.js');
+const withTempDir = require('./with-temp-dir.js');
 
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
@@ -57,29 +58,68 @@ const unencryptedRequestSchema = {
 };
 
 async function encryptedDownloadHandler(req, res, next) {
-    const { file } = req.body;
+    const matrixFile = req.body.file;
 
-    return downloadHandler(req, res, next, file);
+    return downloadHandler(req, res, next, matrixFile);
 }
 
-async function downloadHandler(req, res, next, file) {
+async function downloadHandler(req, res, next, matrixFile) {
     const config = getConfig();
 
     const { domain, mediaId } = req.params;
 
-    return scannedDownload(req, res, domain, mediaId, file, config.scan);
+    const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
+
+    if (cachedReport.scanned && !cachedReport.clean) {
+        throw new ClientError(403, cachedReport.info);
+    }
+
+    await withTempDir(config.scan.tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, config);
+}
+
+async function proxyDownload(req, res, domain, mediaId, matrixFile, config) {
+    const {
+        clean, info, filePath, headers
+    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, config.scan);
+
+    if (!clean) {
+        throw new ClientError(403, info);
+    }
+
+    req.console.info(`Sending ${filePath} to client`);
+
+    const responseHeaders = {};
+    const headerWhitelist = [
+        'content-type',
+        'content-disposition',
+        'content-security-policy',
+    ];
+    // Copy headers from media download to response
+    headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+    res.set(responseHeaders);
+    res.sendFile(filePath);
 }
 
 async function encryptedScanReportHandler(req, res, next) {
-    const { file } = req.body;
+    const matrixFile = req.body.file;
 
-    return scanReportHandler(req, res, next, file);
+    return scanReportHandler(req, res, next, matrixFile);
 }
 
-async function scanReportHandler(req, res, next, file) {
+async function scanReportHandler(req, res, next, matrixFile) {
     const config = getConfig();
     const { domain, mediaId } = req.params;
-    const { clean, info } = await getReport(req.console, domain, mediaId, file, config.scan);
+    let result = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
+
+    if (!result.scanned) {
+        result = await withTempDir(
+            config.scan.tempDirectory,
+            generateReportFromDownload
+        )(req.console, domain, mediaId, matrixFile, config.scan);
+    }
+
+    const { clean, info } = result;
 
     const responseBody = { clean, info };
 
