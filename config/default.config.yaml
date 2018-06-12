@@ -4,7 +4,7 @@ server:
     host: "::1"
 
 scan:
-    # The script that will be given a file as it's first parameter
+    # The script that will be given a file as its first parameter
     script: './example.sh'
     # The temporary directory to use
     tempDirectory: '/tmp'
