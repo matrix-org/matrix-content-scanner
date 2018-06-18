@@ -59,30 +59,67 @@ const unencryptedRequestSchema = {
     }
 };
 
+const thumbnailRequestSchema = {
+    params: {
+        domain: Joi.string().hostname().required(),
+        mediaId: Joi.string().required(),
+    },
+    query: {
+        width: Joi.number(),
+        height: Joi.number(),
+        method: Joi.string(),
+    },
+};
+
 async function encryptedDownloadHandler(req, res, next) {
     const matrixFile = req.body.file;
 
     return downloadHandler(req, res, next, matrixFile);
 }
 
-async function downloadHandler(req, res, next, matrixFile) {
+async function thumbnailHandler(req, res, next) {
+    const { width, height, method } = req.query;
+    const thumbnailQueryParams = { width, height, method };
+
+    return downloadHandler(req, res, next, undefined, thumbnailQueryParams);
+}
+
+async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams) {
     const config = getConfig();
 
     const { domain, mediaId } = req.params;
 
-    const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
+    const { script, tempDirectory, baseUrl } = config.scan;
+    const opts = {
+        script,
+        tempDirectory,
+        baseUrl,
+
+        thumbnailQueryParams,
+    };
+
+    const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, opts);
 
     if (cachedReport.scanned && !cachedReport.clean) {
         throw new ClientError(403, cachedReport.info);
     }
 
-    await withTempDir(config.scan.tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, config);
+    await withTempDir(tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config);
 }
 
-async function proxyDownload(req, res, domain, mediaId, matrixFile, config) {
+async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config) {
+    const { script, tempDirectory, baseUrl } = config.scan;
+    const opts = {
+        script,
+        tempDirectory,
+        baseUrl,
+
+        thumbnailQueryParams,
+    };
+
     const {
         clean, info, filePath, headers
-    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, config.scan);
+    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, opts);
 
     if (!clean) {
         throw new ClientError(403, info);
@@ -142,6 +179,11 @@ function attachHandlers(app) {
         '/_matrix/media_proxy/unstable/download/:domain/:mediaId',
         validate(unencryptedRequestSchema),
         wrapAsyncHandle(downloadHandler)
+    );
+    app.get(
+        '/_matrix/media_proxy/unstable/thumbnail/:domain/:mediaId',
+        validate(thumbnailRequestSchema),
+        wrapAsyncHandle(thumbnailHandler)
     );
     app.post(
         '/_matrix/media_proxy/unstable/scan_encrypted',
