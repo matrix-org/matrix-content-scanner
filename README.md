@@ -52,7 +52,10 @@ Error response body fields:
  - `info`: The error message.
 
 ### `GET .../download/:domain/:mediaId`
+### `GET .../thumbnail/:domain/:mediaId?width=100&height=100&method=scale`
 Retrieve an unencrypted file from the media repo and if it hasn't been scanned since MCS started running, scan it. If the file is clean, respond with the file.
+
+For thumbnails, all query parameters are optional.
 
 #### Example Responses
 ```http
@@ -82,7 +85,7 @@ HTTP/1.1 200 OK
   "info": "File not clean. Output: '...'"
 }
 ```
-or 
+or
 ```http
 HTTP/1.1 200 OK
 ...
@@ -95,7 +98,7 @@ HTTP/1.1 200 OK
 Response body fields:
  - `clean`: If `true`, the script ran with an exit code of `0`. Otherwise it ran with a non-zero exit code.
  - `info`: Human-readable information about the result.
- 
+
 -----
 
 ### `POST .../download_encrypted` and `POST .../scan_encrypted`
