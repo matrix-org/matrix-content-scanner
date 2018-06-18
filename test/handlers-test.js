@@ -62,3 +62,16 @@ describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsN
             });
     });
 });
+
+describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale', () => {
+    beforeEach(() => {
+        clearReportCache();
+    });
+
+    it('responds with the requested thumbnail (when the file has not been scanned before)', () => {
+        return request(app)
+            .get('/_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale')
+            .expect('Content-Type', /png/)
+            .expect(200);
+    });
+});
