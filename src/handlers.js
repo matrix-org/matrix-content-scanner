@@ -22,6 +22,8 @@ const validate = require('express-validation');
 const { getReport, generateReportFromDownload } = require('./reporting.js');
 const withTempDir = require('./with-temp-dir.js');
 
+const ClientError = require('./client-error.js');
+
 function wrapAsyncHandle(fn) {
     return (req, res, next) => fn(req, res, next).catch(next);
 }
