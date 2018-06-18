@@ -39,7 +39,7 @@ describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSG
         clearReportCache();
     });
 
-    it('responds with the expected Content-Type header',  () => {
+    it('responds with the expected Content-Type header', () => {
         return request(app)
             .get('/_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt')
             .expect('Content-Type', /png/)
@@ -52,7 +52,7 @@ describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsN
         clearReportCache();
     });
 
-    it('responds with the requested scan (when the file has not been scanned before)',  () => {
+    it('responds with the requested scan (when the file has not been scanned before)', () => {
         return request(app)
             .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
             .expect('Content-Type', /json/)
