@@ -97,7 +97,11 @@ async function proxyDownload(req, res, domain, mediaId, matrixFile, config) {
         'content-security-policy',
     ];
     // Copy headers from media download to response
-    headerWhitelist.forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+    headerWhitelist
+        .filter((headerKey) => headers[headerKey])
+        .forEach((headerKey) => responseHeaders[headerKey] = headers[headerKey]);
+
+    req.console.info(`Response headers are`, responseHeaders);
 
     res.set(responseHeaders);
     res.sendFile(filePath);
