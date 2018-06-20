@@ -89,13 +89,14 @@ async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams)
 
     const { domain, mediaId } = req.params;
 
-    const { script, tempDirectory, baseUrl } = config.scan;
+    const { script, tempDirectory, baseUrl, directDownload } = config.scan;
     const opts = {
         script,
         tempDirectory,
         baseUrl,
 
         thumbnailQueryParams,
+        directDownload,
     };
 
     const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, opts);
@@ -108,13 +109,14 @@ async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams)
 }
 
 async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config) {
-    const { script, tempDirectory, baseUrl } = config;
+    const { script, tempDirectory, baseUrl, directDownload } = config;
     const opts = {
         script,
         tempDirectory,
         baseUrl,
 
         thumbnailQueryParams,
+        directDownload,
     };
 
     const {

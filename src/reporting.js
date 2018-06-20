@@ -43,8 +43,11 @@ function generateReportHash(httpUrl, matrixFile=undefined, thumbnailQueryParams=
 }
 
 // Transform MXC components into HTTP URL
-function generateHttpUrl(baseUrl, domain, mediaId, isThumbnail=false) {
+function generateHttpUrl(baseUrl, domain, mediaId, isThumbnail=false, directDownload=false) {
     const mediaType = isThumbnail ? 'thumbnail' : 'download';
+    if (directDownload) {
+        baseUrl = `https://${domain}`;
+    }
     return `${baseUrl}/_matrix/media/v1/${mediaType}/${domain}/${mediaId}`;
 }
 
@@ -74,13 +77,13 @@ function clearReportCache() {
  * ```
  **/
 const getReport = async function(console, domain, mediaId, matrixFile, opts) {
-    const { baseUrl, thumbnailQueryParams } = opts;
+    const { baseUrl, thumbnailQueryParams, directDownload } = opts;
 
     if (matrixFile) {
         [domain, mediaId] = matrixFile.url.split('/').slice(-2);
     }
 
-    const httpUrl = generateHttpUrl(baseUrl, domain, mediaId, Boolean(thumbnailQueryParams));
+    const httpUrl = generateHttpUrl(baseUrl, domain, mediaId, Boolean(thumbnailQueryParams), directDownload);
     const reportHash = generateReportHash(httpUrl, matrixFile, thumbnailQueryParams);
 
     if (!reportCache[reportHash]) {
@@ -152,7 +155,7 @@ const generateReportFromDownload = deduplicatePromises(getInputHash, _generateRe
  * ```
  **/
 async function _generateReportFromDownload(console, domain, mediaId, matrixFile, opts) {
-    const { baseUrl, tempDirectory, script, thumbnailQueryParams } = opts;
+    const { baseUrl, tempDirectory, script, thumbnailQueryParams, directDownload } = opts;
     if (baseUrl === undefined || tempDirectory === undefined || script === undefined) {
         throw new Error('Expected baseUrl, tempDirectory and script in opts');
     }
@@ -163,7 +166,9 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
         [domain, mediaId] = matrixFile.url.split('/').slice(-2);
     }
 
-    const httpUrl = generateHttpUrl(baseUrl, domain, mediaId, Boolean(thumbnailQueryParams));
+    const httpUrl = generateHttpUrl(
+        baseUrl, domain, mediaId, Boolean(thumbnailQueryParams), directDownload,
+    );
 
     const filePath = path.join(tempDir, 'downloadedFile');
     const fileWriteStream = fs.createWriteStream(filePath);
