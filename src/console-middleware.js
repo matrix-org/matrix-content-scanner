@@ -37,7 +37,7 @@ function getConsole() {
             [level]: (...args) =>
                 logFunctions[level](getTimestamp(), `[${id}] ${level} -`, ...args),
         }),
-        {}
+        { id }
     );
 }
 
