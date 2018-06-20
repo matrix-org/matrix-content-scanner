@@ -106,11 +106,16 @@ function getInputHash(_, domain, mediaId, matrixFile, opts) {
 // Deduplicate concurrent requests if getKey returns an identical value for identical requests
 function deduplicatePromises(getKey, asyncFn) {
     const ongoing = {};
-    return async (...args) => {
-        const k = getKey(...args);
+    return async (console, ...args) => {
+        const k = getKey(console, ...args);
 
         if(!ongoing[k]) {
-            ongoing[k] = asyncFn(...args).finally((res) => {delete ongoing[k]; return res;});
+            ongoing[k] = asyncFn(console, ...args).finally((res) => {delete ongoing[k]; return res;});
+            ongoing[k]._id = console.id;
+        }
+
+        if (console.id !== ongoing[k]._id) {
+            console.info(`Request dedpulicated, see req [${ongoing[k]._id}] for canonical request`);
         }
 
         return await ongoing[k];
