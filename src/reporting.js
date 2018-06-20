@@ -115,7 +115,7 @@ function deduplicatePromises(getKey, asyncFn) {
         }
 
         if (console.id !== ongoing[k]._id) {
-            console.info(`Request dedpulicated, see req [${ongoing[k]._id}] for canonical request`);
+            console.info(`Request deduplicated, see req [${ongoing[k]._id}] for canonical request`);
         }
 
         return await ongoing[k];
