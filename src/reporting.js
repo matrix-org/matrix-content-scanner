@@ -166,6 +166,11 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
     const httpUrl = generateHttpUrl(baseUrl, domain, mediaId, Boolean(thumbnailQueryParams));
 
     const filePath = path.join(tempDir, 'downloadedFile');
+    const fileWriteStream = fs.createWriteStream(filePath);
+    const fileWrittenPromise = new Promise((resolve, reject) => {
+        fileWriteStream.once('close', resolve);
+        fileWriteStream.once('error', reject);
+    });
 
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
@@ -184,7 +189,7 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
                 .on('end', () => {
                     resolve(responseHeaders);
                 })
-                .pipe(fs.createWriteStream(filePath));
+                .pipe(fileWriteStream);
         });
     } catch (err) {
         if (!err.statusCode) {
@@ -195,6 +200,12 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
 
         throw new ClientError(502, 'Failed to get requested URL');
     }
+
+    // Wait for the writable stream to close
+    await fileWrittenPromise;
+
+    const stat = await fs.promises.stat(filePath);
+    console.info(`File written to ${filePath}. (${stat.size} bytes)`);
 
     const result = await generateReport(console, httpUrl, matrixFile, filePath, tempDir, script);
 
