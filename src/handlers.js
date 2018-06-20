@@ -104,11 +104,11 @@ async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams)
         throw new ClientError(403, cachedReport.info);
     }
 
-    await withTempDir(tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config);
+    await withTempDir(tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config.scan);
 }
 
 async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config) {
-    const { script, tempDirectory, baseUrl } = config.scan;
+    const { script, tempDirectory, baseUrl } = config;
     const opts = {
         script,
         tempDirectory,
