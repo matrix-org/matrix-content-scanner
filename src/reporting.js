@@ -70,6 +70,9 @@ function clearReportCache() {
  * @param {string} opts.thumbnailQueryParams If set, use as query parameters to request
  * a thumbnail. All thumbnail query parameters are optional, so passing `{ }` will download
  * a thumbnail without query parameters.
+ * @param {string} opts.directDownload If true, download media directly from the media's content
+ * repository. This should only be used if the `domain` is trusted for downloading media from
+ * directly.
  *
  * @returns {Promise} A promise that resolves with a report:
  * ```
@@ -139,6 +142,12 @@ const generateReportFromDownload = deduplicatePromises(getInputHash, _generateRe
  * @param {string} opts.baseUrl The URL of the homeserver to request media from.
  * @param {string} opts.tempDirectory The path to a directory where files can be written.
  * @param {string} opts.script The script to run against the downloaded file.
+ * @param {string} opts.thumbnailQueryParams If set, use as query parameters to request
+ * a thumbnail. All thumbnail query parameters are optional, so passing `{ }` will download
+ * a thumbnail without query parameters.
+ * @param {string} opts.directDownload If true, download media directly from the media's content
+ * repository. This should only be used if the `domain` is trusted for downloading media from
+ * directly.
  *
  * @returns {Promise} A promise that resolves with a report:
  * ```
