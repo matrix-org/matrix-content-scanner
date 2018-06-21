@@ -23,7 +23,7 @@ const Joi = require('joi');
 const configSchema = Joi.object().keys({
     server: Joi.object().keys({
         port: Joi.number().required(),
-	host: Joi.string().required(),
+        host: Joi.string().required(),
     }).required(),
     scan: Joi.object().keys({
         script: Joi.string().required(),
@@ -31,6 +31,7 @@ const configSchema = Joi.object().keys({
         baseUrl: Joi.string().required(),
         directDownload: Joi.boolean(),
     }).required(),
+    altRemovalCmd: Joi.string(),
 });
 
 // Exported alongside mechanism to load particular configuarion

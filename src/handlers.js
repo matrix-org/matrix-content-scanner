@@ -16,6 +16,8 @@ limitations under the License.
 
 **/
 
+const child_process = require('child_process');
+
 const Joi = require('joi');
 const validate = require('express-validation');
 
@@ -29,6 +31,27 @@ function wrapAsyncHandle(fn) {
 }
 
 const { getConfig } = require('./config.js');
+
+/**
+ * Create a replacement function for `fs.unlink` that executes altRemovalCmd with
+ * the file path as the first argument.
+ */
+function getUnlinkFn(console) {
+    const alternateRemovalCommand = getConfig().altRemovalCmd;
+
+    let fn;
+    if (alternateRemovalCommand) {
+        fn = (path, errCallback) => {
+            const callback = (err) => {
+                if (err) errCallback(err);
+            }
+            child_process.execFile(alternateRemovalCommand, [path], callback);
+        }
+        console.info(`Will unlink file paths with alternate command "${alternateRemovalCommand}"`);
+    }
+
+    return fn;
+}
 
 const encryptedRequestSchema = {
     body: {
@@ -105,7 +128,8 @@ async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams)
         throw new ClientError(403, cachedReport.info);
     }
 
-    await withTempDir(tempDirectory, proxyDownload)(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config.scan);
+    const proxyDownloadWithTmpDir = withTempDir(tempDirectory, proxyDownload, getUnlinkFn(req.console));
+    await proxyDownloadWithTmpDir(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config.scan);
 }
 
 async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQueryParams, config) {
@@ -158,10 +182,14 @@ async function scanReportHandler(req, res, next, matrixFile) {
     let result = await getReport(req.console, domain, mediaId, matrixFile, config.scan);
 
     if (!result.scanned) {
-        result = await withTempDir(
+        const generateReportFromDownloadWithTmpDir = withTempDir(
             config.scan.tempDirectory,
-            generateReportFromDownload
-        )(req.console, domain, mediaId, matrixFile, config.scan);
+            generateReportFromDownload,
+            getUnlinkFn(req.console),
+        );
+        result = await generateReportFromDownloadWithTmpDir(
+            req.console, domain, mediaId, matrixFile, config.scan
+        );
     }
 
     const { clean, info } = result;

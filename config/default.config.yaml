@@ -10,7 +10,6 @@ scan:
     tempDirectory: '/tmp'
     # The base URL of the homeserver to download media from
     baseUrl: 'https://matrix.org'
-
     # If set to true, effectively set baseUrl to
     #   "https://$domain"
     #   where $domain is the domain part of the requested media.
@@ -20,3 +19,10 @@ scan:
     # homeserver.
     #
     # directDownload: false
+
+# Optional. A command to execute when unlinking files from the file
+# system instead of using node's fs.unlink. When executed, the first
+# argument to the command will be the path of the file being
+# removed.
+#
+# altRemovalCmd: 'rm'
