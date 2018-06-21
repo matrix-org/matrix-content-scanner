@@ -19,7 +19,7 @@ limitations under the License.
 const rimraf = require('rimraf');
 const fs = require('fs');
 const path = require('path');
-module.exports = function withTempDir(tempDirectory, asyncFn) {
+module.exports = function withTempDir(tempDirectory, asyncFn, unlinkFn) {
     return async (...args) => {
         const opts = args[args.length - 1];
 
@@ -28,11 +28,18 @@ module.exports = function withTempDir(tempDirectory, asyncFn) {
         // Copy all options, overide tempDir
         args[args.length - 1] = Object.assign({}, opts, {tempDirectory: tempDir});
 
+        let rimrafOpts = {};
+        if (unlinkFn) {
+            rimrafOpts.unlink = unlinkFn;
+        }
+
         let result;
         try {
             result = await asyncFn(...args);
         } finally {
-            await new Promise((resolve, reject) => rimraf(tempDir, (err) => err ? reject(err) : resolve()));
+            await new Promise(
+                (resolve, reject) => rimraf(tempDir, rimrafOpts, (err) => err ? reject(err) : resolve())
+            );
         }
 
         return result;

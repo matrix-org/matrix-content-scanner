@@ -30,6 +30,7 @@ const configSchema = Joi.object().keys({
         tempDirectory: Joi.string().required(),
         baseUrl: Joi.string().required(),
     }).required(),
+    altRemovalCmd: Joi.string(),
 });
 
 // Exported alongside mechanism to load particular configuarion
