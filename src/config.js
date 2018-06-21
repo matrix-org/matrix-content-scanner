@@ -29,6 +29,7 @@ const configSchema = Joi.object().keys({
         script: Joi.string().required(),
         tempDirectory: Joi.string().required(),
         baseUrl: Joi.string().required(),
+        directDownload: Joi.boolean(),
     }).required(),
     altRemovalCmd: Joi.string(),
 });
