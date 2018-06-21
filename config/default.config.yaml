@@ -8,5 +8,15 @@ scan:
     script: './example.sh'
     # The temporary directory to use
     tempDirectory: '/tmp'
-    # The base URL of the Home Server to download media from
+    # The base URL of the homeserver to download media from
     baseUrl: 'https://matrix.org'
+
+    # If set to true, effectively set baseUrl to
+    #   "https://$domain"
+    #   where $domain is the domain part of the requested media.
+    #
+    # This should only be used when it is preferable not to download
+    # media through the normal route: via a single (and federated)
+    # homeserver.
+    #
+    # directDownload: false
