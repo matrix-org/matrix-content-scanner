@@ -6,7 +6,7 @@
 # -no204 prevents 204 Unmodified from being given; matrix-content-scanner
 # doesn't handle the case where the file's status hasn't changed.
 #
-c-icap-client -i 10.25.0.21 -p 1344 -f $1 -s srv_clamav -no204 -v 2>&1 \
+c-icap-client -i ICAP_SERVER_ADDRESS -p ICAP_SERVER_PORT -f $1 -s ICAP_SERVICE -no204 -v 2>&1 \
     | grep --quiet '403 Forbidden'
 
 # Negate the grep; if we find 403 Forbidden in the response headers,
