@@ -25,12 +25,14 @@ function encryptedBodyMiddleware(req, res, next) {
     const decryptor = BodyDecryptor.getDecryptor();
 
     if (req.method === 'POST' && req.body && req.body.encrypted_body) {
+        req.console.info('This request has an encrypted body; decrypting it...');
         try {
             req.body = decryptor.decryptBody(req.body.encrypted_body);
         } catch (err) {
             next(err);
             return;
         }
+        req.console.info('Decryption successful');
     }
 
     next();
