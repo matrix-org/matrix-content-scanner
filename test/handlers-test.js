@@ -18,10 +18,13 @@ limitations under the License.
 
 const request = require('supertest');
 const assert = require('assert');
+const { PkEncryption } = require('olm');
 
 const { clearReportCache } = require('../src/reporting.js');
 const app = require('../src/app.js').createApp();
 const example = require('../example.file.json');
+
+const { getPublicKey } = require('../src/decrypt-body.js');
 
 const { setConfig } = require('../src/config.js');
 
@@ -73,5 +76,37 @@ describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPS
             .get('/_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale')
             .expect('Content-Type', /png/)
             .expect(200);
+    });
+});
+
+describe('GET /_matrix/media_proxy/unstable/public_key', () => {
+    it('responds with a public key', () => {
+        return request(app)
+            .get('/_matrix/media_proxy/unstable/public_key')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then(response => {
+                assert(typeof response.body.public_key, 'string');
+            });
+    });
+});
+
+describe('POST /_matrix/media_proxy/unstable/scan_encrypted', () => {
+    it('responds with a scan report if `encrypted_body` is given', () => {
+        const plainBody = { file: example.file };
+
+        const publicKey = getPublicKey();
+        const encryption = new PkEncryption();
+        encryption.set_recipient_key(publicKey);
+        const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
+
+        return request(app)
+            .post('/_matrix/media_proxy/unstable/scan_encrypted')
+            .send({ encrypted_body: encryptedBody })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then(response => {
+                assert(response.body.clean, true);
+            });
     });
 });

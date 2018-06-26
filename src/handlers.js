@@ -23,6 +23,7 @@ const validate = require('express-validation');
 
 const { getReport, generateReportFromDownload } = require('./reporting.js');
 const withTempDir = require('./with-temp-dir.js');
+const { getPublicKey } = require('./decrypt-body.js');
 
 const ClientError = require('./client-error.js');
 
@@ -199,6 +200,14 @@ async function scanReportHandler(req, res, next, matrixFile) {
     res.status(200).json(responseBody);
 }
 
+function publicKeyHandler(req, res, next) {
+    const responseBody = {
+        public_key: getPublicKey(),
+    };
+
+    res.status(200).json(responseBody);
+}
+
 function attachHandlers(app) {
     app.post(
         '/_matrix/media_proxy/unstable/download_encrypted',
@@ -225,6 +234,7 @@ function attachHandlers(app) {
         validate(unencryptedRequestSchema),
         wrapAsyncHandle(scanReportHandler)
     );
+    app.get('/_matrix/media_proxy/unstable/public_key', publicKeyHandler);
 }
 
 module.exports = {
