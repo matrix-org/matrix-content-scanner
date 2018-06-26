@@ -19,34 +19,42 @@ limitations under the License.
 const { PkDecryption } = require('olm');
 const ClientError = require('../src/client-error.js');
 
-const decryption = new PkDecryption();
-const publicKey = decryption.generate_key();
-
-function decryptBody(encryptedBody) {
-    const { ephemeral, mac, ciphertext } = encryptedBody;
-
-    let decrypted;
-    try {
-        decrypted = decryption.decrypt(ephemeral, mac, ciphertext);
-    } catch (err) {
-        throw new ClientError(403, `Bad decryption: ${err.message}`);
+class BodyDecryptor {
+    constructor() {
+        this._decryption = new PkDecryption();
+        this._publicKey = this._decryption.generate_key();
     }
 
-    let result;
-    try {
-        result = JSON.parse(decrypted);
-    } catch (err) {
-        throw new ClientError(400, `Malformed JSON: ${err.message}`);
+    decryptBody(encryptedBody) {
+        const { ephemeral, mac, ciphertext } = encryptedBody;
+
+        let decrypted;
+        try {
+            decrypted = this._decryption.decrypt(ephemeral, mac, ciphertext);
+        } catch (err) {
+            throw new ClientError(403, `Bad decryption: ${err.message}`);
+        }
+
+        let result;
+        try {
+            result = JSON.parse(decrypted);
+        } catch (err) {
+            throw new ClientError(400, `Malformed JSON: ${err.message}`);
+        }
+
+        return result;
     }
 
-    return result;
+    getPublicKey() {
+        return this._publicKey;
+    }
+
+    static getDecryptor() {
+        if (!global.matrixContentScannerDecryptor) {
+            global.matrixContentScannerDecryptor = new BodyDecryptor();
+        }
+        return global.matrixContentScannerDecryptor;
+    }
 }
 
-function getPublicKey() {
-    return publicKey;
-}
-
-module.exports = {
-    decryptBody,
-    getPublicKey,
-};
+module.exports = BodyDecryptor;

@@ -16,15 +16,17 @@ limitations under the License.
 
 **/
 
-const { decryptBody } = require('./decrypt-body.js');
+const BodyDecryptor = require('./decrypt-body.js');
 
 function encryptedBodyMiddleware(req, res, next) {
     // If a POST body contains `encrypted_body`, decrypt it and pass it as a body
     // to the next middleware
 
+    const decryptor = BodyDecryptor.getDecryptor();
+
     if (req.method === 'POST' && req.body && req.body.encrypted_body) {
         try {
-            req.body = decryptBody(req.body.encrypted_body);
+            req.body = decryptor.decryptBody(req.body.encrypted_body);
         } catch (err) {
             next(err);
             return;

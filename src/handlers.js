@@ -23,7 +23,7 @@ const validate = require('express-validation');
 
 const { getReport, generateReportFromDownload } = require('./reporting.js');
 const withTempDir = require('./with-temp-dir.js');
-const { getPublicKey } = require('./decrypt-body.js');
+const BodyDecryptor = require('./decrypt-body.js');
 
 const ClientError = require('./client-error.js');
 
@@ -201,8 +201,9 @@ async function scanReportHandler(req, res, next, matrixFile) {
 }
 
 function publicKeyHandler(req, res, next) {
+    const decryptor = BodyDecryptor.getDecryptor();
     const responseBody = {
-        public_key: getPublicKey(),
+        public_key: decryptor.getPublicKey(),
     };
 
     res.status(200).json(responseBody);

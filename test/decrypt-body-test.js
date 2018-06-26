@@ -18,15 +18,17 @@ limitations under the License.
 
 const assert = require('assert');
 const { PkEncryption } = require('olm');
-const { decryptBody, getPublicKey } = require('../src/decrypt-body.js');
+const BodyDecryptor = require('../src/decrypt-body.js');
 const ClientError = require('../src/client-error.js');
+
+const decryptor = new BodyDecryptor();
 
 // In reality, getting the public key, and doing an encryption is done
 // client-side.
-const publicKey = getPublicKey();
+const publicKey = decryptor.getPublicKey();
 
 const encryption = new PkEncryption();
-encryption.set_recipient_key(getPublicKey());
+encryption.set_recipient_key(publicKey);
 
 describe('decryptBody', () => {
     it('should decrypt an encrypted body', async () => {
@@ -39,7 +41,7 @@ describe('decryptBody', () => {
         };
         const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
 
-        const decryptedBody = decryptBody(encryptedBody);
+        const decryptedBody = decryptor.decryptBody(encryptedBody);
         assert.deepStrictEqual(decryptedBody, plainBody);
     });
 
@@ -47,7 +49,7 @@ describe('decryptBody', () => {
         const encryptedBody = encryption.encrypt('this is not JSON');
 
         assert.throws(
-            () => decryptBody(encryptedBody),
+            () => decryptor.decryptBody(encryptedBody),
             (e) => e instanceof ClientError && e.status === 400,
         );
     });
@@ -65,7 +67,7 @@ describe('decryptBody', () => {
         encryptedBody.mac = "this is not the mac";
 
         assert.throws(
-            () => decryptBody(encryptedBody),
+            () => decryptor.decryptBody(encryptedBody),
             (e) => e instanceof ClientError && e.status === 403,
         );
     });

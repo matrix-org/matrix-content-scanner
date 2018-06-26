@@ -24,7 +24,7 @@ const { clearReportCache } = require('../src/reporting.js');
 const app = require('../src/app.js').createApp();
 const example = require('../example.file.json');
 
-const { getPublicKey } = require('../src/decrypt-body.js');
+const BodyDecryptor = require('../src/decrypt-body.js');
 
 const { setConfig } = require('../src/config.js');
 
@@ -95,7 +95,8 @@ describe('POST /_matrix/media_proxy/unstable/scan_encrypted', () => {
     it('responds with a scan report if `encrypted_body` is given', () => {
         const plainBody = { file: example.file };
 
-        const publicKey = getPublicKey();
+        const decryptor = BodyDecryptor.getDecryptor();
+        const publicKey = decryptor.getPublicKey();
         const encryption = new PkEncryption();
         encryption.set_recipient_key(publicKey);
         const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
