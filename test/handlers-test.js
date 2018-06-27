@@ -33,7 +33,8 @@ setConfig({
         baseUrl: "https://matrix.org",
         tempDirectory: "/tmp",
         script: "exit 0"
-    }
+    },
+    altRemovalCmd: 'rm'
 });
 
 // XXX: These tests still don't make use of example.file.data
