@@ -18,6 +18,7 @@ limitations under the License.
 
 const express = require('express');
 const consoleMiddleware = require('./console-middleware.js');
+const encryptedBodyMiddleware = require('./encrypted-body-middleware.js');
 const ClientError = require('./client-error.js');
 
 function jsonErrorMiddleware(err, req, res, next) {
@@ -31,6 +32,10 @@ function attachMiddlewares(app) {
     // Add express-provided JSON but give it it's own unique error handling instead
     // of falling back on the generic one - handing these back to the client is OK.
     app.use(express.json(), jsonErrorMiddleware);
+
+    // Add middleware to replace requests with `encrypted_body` with the deciphered
+    // body.
+    app.use(encryptedBodyMiddleware);
 }
 
 module.exports = {
