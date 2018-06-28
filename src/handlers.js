@@ -42,10 +42,7 @@ function getUnlinkFn(console) {
 
     let fn;
     if (alternateRemovalCommand) {
-        fn = (path, errCallback) => {
-            const callback = (err) => {
-                if (err) errCallback(err);
-            }
+        fn = (path, callback) => {
             child_process.execFile(alternateRemovalCommand, [path], callback);
         }
         console.info(`Will unlink file paths with alternate command "${alternateRemovalCommand}"`);
