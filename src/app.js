@@ -57,9 +57,10 @@ function errorMiddleware(err, req, res, next) {
     respondWithError(req, res, new ClientError(500, 'Unhandled server error'));
 }
 
-function createApp() {
+async function createApp(middlewareOpts) {
     const app = express();
-    attachMiddlewares(app);
+
+    await attachMiddlewares(app, middlewareOpts);
     attachHandlers(app);
 
     // Add a generic error handler to take care of anything unhandled, and also
@@ -69,7 +70,7 @@ function createApp() {
     return app;
 }
 
-function runApp() {
+async function runApp() {
     if (process) {
         const processArguments = process.argv.slice(2);
 
@@ -85,8 +86,15 @@ function runApp() {
         }
     }
 
-    const app = createApp();
-    const serverConfig = getConfig().server;
+    const config = getConfig();
+    const serverConfig = config.server;
+    let app;
+    try {
+        app = await createApp(config.middleware);
+    } catch (err) {
+        console.error('Failed to start:', err);
+        return;
+    }
 
     app.listen(serverConfig.port, serverConfig.host, () => console.log('Listening on ' +serverConfig.host + ":" + serverConfig.port));
 }

@@ -22,8 +22,8 @@ const fs = require('fs');
 const BodyDecryptor = require('./decrypt-body.js');
 
 class EncryptedBodyApp {
-    constructor() {
-        this._decryptor = new BodyDecryptor();
+    constructor(pickleKey, pickle) {
+        this._decryptor = new BodyDecryptor(pickleKey, pickle);
     }
 
     middleware(req, res, next) {
@@ -57,8 +57,34 @@ class EncryptedBodyApp {
         app.get('/_matrix/media_proxy/unstable/public_key', (...args) => this.handler(...args));
     }
 
+    getPickle() {
+        return this._decryptor.pickle();
+    }
+
     static async attachEncryptedBodySubApp(app, opts) {
-        const encryptedBodyApp = new EncryptedBodyApp();
+        let pickle;
+        let pickleKey;
+        if (opts && opts.pickleKey) {
+            pickleKey = opts.pickleKey;
+        }
+
+        // Get pickle from file, if configured
+        if (opts && opts.picklePath && opts.pickleKey) {
+            try {
+                pickle = (await fs.promises.readFile(opts.picklePath)).toString();
+                console.info('Creating encrypted_body middleware with pickled decryption key');
+            } catch (err) {
+                console.warn('Could not read pickled decryption key: ' + err.message);
+                console.info('Pickled decryption key will be generated and saved to ' + opts.picklePath);
+            }
+        }
+
+        const encryptedBodyApp = new EncryptedBodyApp(pickleKey, pickle);
+
+        // Unpickling failed, pickle the newly generated pickle
+        if (!pickle && opts && opts.picklePath) {
+            await fs.promises.writeFile(opts.picklePath, encryptedBodyApp.getPickle());
+        }
 
         encryptedBodyApp.attach(app);
     }

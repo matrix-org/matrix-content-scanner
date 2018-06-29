@@ -20,8 +20,8 @@ const request = require('supertest');
 const assert = require('assert');
 const { PkEncryption } = require('olm');
 
+const { createApp } = require('../src/app.js');
 const { clearReportCache } = require('../src/reporting.js');
-const app = require('../src/app.js').createApp();
 const example = require('../example.file.json');
 
 const { setConfig } = require('../src/config.js');
@@ -40,7 +40,8 @@ describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSG
         clearReportCache();
     });
 
-    it('responds with the expected Content-Type header', () => {
+    it('responds with the expected Content-Type header', async () => {
+        const app = await createApp();
         return request(app)
             .get('/_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt')
             .expect('Content-Type', /png/)
@@ -53,7 +54,8 @@ describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsN
         clearReportCache();
     });
 
-    it('responds with the requested scan (when the file has not been scanned before)', () => {
+    it('responds with the requested scan (when the file has not been scanned before)', async () => {
+        const app = await createApp();
         return request(app)
             .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
             .expect('Content-Type', /json/)
@@ -69,7 +71,8 @@ describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPS
         clearReportCache();
     });
 
-    it('responds with the requested thumbnail (when the file has not been scanned before)', () => {
+    it('responds with the requested thumbnail (when the file has not been scanned before)', async () => {
+        const app = await createApp();
         return request(app)
             .get('/_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale')
             .expect('Content-Type', /png/)
@@ -78,7 +81,8 @@ describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPS
 });
 
 describe('GET /_matrix/media_proxy/unstable/public_key', () => {
-    it('responds with a public key', () => {
+    it('responds with a public key', async () => {
+        const app = await createApp();
         return request(app)
             .get('/_matrix/media_proxy/unstable/public_key')
             .expect('Content-Type', /json/)
@@ -90,7 +94,9 @@ describe('GET /_matrix/media_proxy/unstable/public_key', () => {
 });
 
 describe('POST /_matrix/media_proxy/unstable/scan_encrypted', () => {
-    it('responds with a scan report if `encrypted_body` is given', () => {
+    it('responds with a scan report if `encrypted_body` is given', async () => {
+        const app = await createApp();
+
         const plainBody = { file: example.file };
 
         const publicKey = await request(app)
