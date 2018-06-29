@@ -18,8 +18,9 @@ limitations under the License.
 
 const express = require('express');
 const consoleMiddleware = require('./console-middleware.js');
-const encryptedBodyMiddleware = require('./encrypted-body-middleware.js');
 const ClientError = require('./client-error.js');
+
+const attachEncryptedBodySubApp = require('./encrypted-body-sub-app.js');
 
 function jsonErrorMiddleware(err, req, res, next) {
     next(new ClientError(400, `Malformed JSON: ${err.message}`));
@@ -33,9 +34,9 @@ function attachMiddlewares(app) {
     // of falling back on the generic one - handing these back to the client is OK.
     app.use(express.json(), jsonErrorMiddleware);
 
-    // Add middleware to replace requests with `encrypted_body` with the deciphered
-    // body.
-    app.use(encryptedBodyMiddleware);
+    // Add subapp to replace requests with `encrypted_body` with the deciphered
+    // body and expose public key.
+    const encryptedBodyApp = await attachEncryptedBodySubApp(app);
 }
 
 module.exports = {

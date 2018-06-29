@@ -48,13 +48,6 @@ class BodyDecryptor {
     getPublicKey() {
         return this._publicKey;
     }
-
-    static getDecryptor() {
-        if (!global.matrixContentScannerDecryptor) {
-            global.matrixContentScannerDecryptor = new BodyDecryptor();
-        }
-        return global.matrixContentScannerDecryptor;
-    }
 }
 
 module.exports = BodyDecryptor;
