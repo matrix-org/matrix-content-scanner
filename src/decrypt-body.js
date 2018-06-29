@@ -20,9 +20,19 @@ const { PkDecryption } = require('olm');
 const ClientError = require('../src/client-error.js');
 
 class BodyDecryptor {
-    constructor() {
+    constructor(pickleKey, pickle) {
         this._decryption = new PkDecryption();
-        this._publicKey = this._decryption.generate_key();
+        this._pickleKey = pickleKey;
+
+        if (pickleKey && pickle) {
+            this._publicKey = this._decryption.unpickle(pickleKey, pickle);
+        } else {
+            this._publicKey = this._decryption.generate_key();
+        }
+    }
+
+    pickle() {
+        return this._decryption.pickle(this._pickleKey);
     }
 
     decryptBody(encryptedBody) {
@@ -47,13 +57,6 @@ class BodyDecryptor {
 
     getPublicKey() {
         return this._publicKey;
-    }
-
-    static getDecryptor() {
-        if (!global.matrixContentScannerDecryptor) {
-            global.matrixContentScannerDecryptor = new BodyDecryptor();
-        }
-        return global.matrixContentScannerDecryptor;
     }
 }
 

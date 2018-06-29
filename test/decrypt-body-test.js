@@ -21,7 +21,8 @@ const { PkEncryption } = require('olm');
 const BodyDecryptor = require('../src/decrypt-body.js');
 const ClientError = require('../src/client-error.js');
 
-const decryptor = new BodyDecryptor();
+const PICKLE_KEY = 'secret_key';
+const decryptor = new BodyDecryptor(PICKLE_KEY);
 
 // In reality, getting the public key, and doing an encryption is done
 // client-side.
@@ -70,5 +71,22 @@ describe('decryptBody', () => {
             () => decryptor.decryptBody(encryptedBody),
             (e) => e instanceof ClientError && e.status === 403,
         );
+    });
+
+    it('should unpickle a pickled PkDecryption when created with a pickleKey & pickle', () => {
+        const pickle = decryptor.pickle(PICKLE_KEY);
+        const unpickledDecryptor = new BodyDecryptor(PICKLE_KEY, pickle);
+
+        const plainBody = {
+            some: 'body',
+            with: 'keys',
+            nested: {
+                arbitrary: 'structure',
+            },
+        };
+        const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
+
+        const decryptedBody = unpickledDecryptor.decryptBody(encryptedBody);
+        assert.deepStrictEqual(decryptedBody, plainBody);
     });
 });
