@@ -26,95 +26,99 @@ const example = require('../example.file.json');
 
 const { setConfig } = require('../src/config.js');
 
-setConfig({
-    scan: {
-        baseUrl: "https://matrix.org",
-        tempDirectory: "/tmp",
-        script: "exit 0"
-    },
-    altRemovalCmd: 'rm'
-});
-
-// XXX: These tests still don't make use of example.file.data
-describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
+describe('handlers', () => {
     beforeEach(() => {
-        clearReportCache();
+        setConfig({
+            scan: {
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                script: "exit 0"
+            },
+            altRemovalCmd: 'rm'
+        });
     });
 
-    it('responds with the expected Content-Type header', async () => {
-        const app = await createApp();
-        return request(app)
-            .get('/_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt')
-            .expect('Content-Type', /png/)
-            .expect(200);
-    });
-});
+    // XXX: These tests still don't make use of example.file.data
+    describe('GET /_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
+        beforeEach(() => {
+            clearReportCache();
+        });
 
-describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
-    beforeEach(() => {
-        clearReportCache();
-    });
-
-    it('responds with the requested scan (when the file has not been scanned before)', async () => {
-        const app = await createApp();
-        return request(app)
-            .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then(response => {
-                assert(response.body.clean, true);
-            });
-    });
-});
-
-describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale', () => {
-    beforeEach(() => {
-        clearReportCache();
+        it('responds with the expected Content-Type header', async () => {
+            const app = await createApp();
+            return request(app)
+                .get('/_matrix/media_proxy/unstable/download/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+                .expect('Content-Type', /png/)
+                .expect(200);
+        });
     });
 
-    it('responds with the requested thumbnail (when the file has not been scanned before)', async () => {
-        const app = await createApp();
-        return request(app)
-            .get('/_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale')
-            .expect('Content-Type', /png/)
-            .expect(200);
+    describe('GET /_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt', () => {
+        beforeEach(() => {
+            clearReportCache();
+        });
+
+        it('responds with the requested scan (when the file has not been scanned before)', async () => {
+            const app = await createApp();
+            return request(app)
+                .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .then(response => {
+                    assert(response.body.clean, true);
+                });
+        });
     });
-});
 
-describe('GET /_matrix/media_proxy/unstable/public_key', () => {
-    it('responds with a public key', async () => {
-        const app = await createApp();
-        return request(app)
-            .get('/_matrix/media_proxy/unstable/public_key')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then(response => {
-                assert(typeof response.body.public_key, 'string');
-            });
+    describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale', () => {
+        beforeEach(() => {
+            clearReportCache();
+        });
+
+        it('responds with the requested thumbnail (when the file has not been scanned before)', async () => {
+            const app = await createApp();
+            return request(app)
+                .get('/_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale')
+                .expect('Content-Type', /png/)
+                .expect(200);
+        });
     });
-});
 
-describe('POST /_matrix/media_proxy/unstable/scan_encrypted', () => {
-    it('responds with a scan report if `encrypted_body` is given', async () => {
-        const app = await createApp();
+    describe('GET /_matrix/media_proxy/unstable/public_key', () => {
+        it('responds with a public key', async () => {
+            const app = await createApp();
+            return request(app)
+                .get('/_matrix/media_proxy/unstable/public_key')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .then(response => {
+                    assert(typeof response.body.public_key, 'string');
+                });
+        });
+    });
 
-        const plainBody = { file: example.file };
+    describe('POST /_matrix/media_proxy/unstable/scan_encrypted', () => {
+        it('responds with a scan report if `encrypted_body` is given', async () => {
+            const app = await createApp();
 
-        const publicKey = await request(app)
-            .get('/_matrix/media_proxy/unstable/public_key')
-            .then(response => response.body.public_key);
+            const plainBody = { file: example.file };
 
-        const encryption = new PkEncryption();
-        encryption.set_recipient_key(publicKey);
-        const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
+            const publicKey = await request(app)
+                .get('/_matrix/media_proxy/unstable/public_key')
+                .then(response => response.body.public_key);
 
-        return request(app)
-            .post('/_matrix/media_proxy/unstable/scan_encrypted')
-            .send({ encrypted_body: encryptedBody })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then(response => {
-                assert(response.body.clean, true);
-            });
+            const encryption = new PkEncryption();
+            encryption.set_recipient_key(publicKey);
+            const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
+
+            return request(app)
+                .post('/_matrix/media_proxy/unstable/scan_encrypted')
+                .send({ encrypted_body: encryptedBody })
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .then(response => {
+                    assert(response.body.clean, true);
+                });
+        });
     });
 });
