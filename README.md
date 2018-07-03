@@ -135,7 +135,7 @@ Request body fields:
  - `file.url`: The MXC URL of the file to fetch from the HS.
  - `file.key`, `file.iv`, `file.hashes` and `file.key`: encryption data required to decrypt the media once downloaded.
 
-#### Example Encrypted Request
+# Encrypted POST API
 The request body of any POST request can be encrypted using the public key exposed by `.../public_key`. This can be done by using the `PkEncryption` class from of the [Olm](https://git.matrix.org/git/olm) library.
 
 ```http
@@ -155,10 +155,11 @@ Request body fields:
  - `encrypted_body.mac`: The base64-encoded string representing the MAC.
  - `encrypted_body.ephemeral`: The base64-encoded string representing the ephemeral public key.
 
+## `403 { ..., reason: 'MCS_BAD_DECRYPTION' }`
+This response indicates that the client should request the public key of the server again and retry the request a single time.
+
 ### `GET .../public_key`
 Returns the current public curve25519 key of server. This can be used to encrypt `encrypted_body` requests.
-
-(TODO: indicate outdated public key with 403 JSON response when using `encrypted_body`.)
 
 #### Example Response
 ```http
