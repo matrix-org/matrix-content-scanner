@@ -94,10 +94,10 @@ describe('middleware', () => {
             });
     });
 
-    it('sends a client error when one is thrown in a handler', async () => {
+    it('sends a client error with a reason when one is thrown in a handler', async () => {
         const app = await createMiddlewareApp((app) => {
             app.get('/error_endpoint', () => {
-                throw new ClientError(418, 'An error has occured');
+                throw new ClientError(418, 'An error has occured', 'MCS_I_AM_TEAPOT');
             });
         });
         return request(app)
@@ -105,6 +105,7 @@ describe('middleware', () => {
             .expect('Content-Type', /json/)
             .expect((res) => {
                 assert.strictEqual(res.status, 418, 'thrown client error status expected');
+                assert.strictEqual(res.body.reason, 'MCS_I_AM_TEAPOT', 'client error reason expected');
             });
     });
 

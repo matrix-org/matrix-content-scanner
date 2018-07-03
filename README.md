@@ -168,3 +168,14 @@ HTTP/1.1 200 OK
   "public_key": "[base64-encoded curve25519 public key of the server]"
 }
 ```
+
+# Error Codes
+
+Status Code | Reason | Description
+------------|--------|------------
+502 | `MCS_MEDIA_REQUEST_FAILED` | The server failed to request media from the media repo.
+400 | `MCS_MEDIA_FAILED_TO_DECRYPT` | The server failed to decrypt the encrypted media downloaded from the media repo.
+403 | `MCS_MEDIA_NOT_CLEAN` | The server scanned the downloaded media but the antivirus script returned a non-zero exit code.
+403 | `MCS_BAD_DECRYPTION` | The provided `encrypted_body` could not be decrypted. The client should request the public key of the server and then retry (once).
+400 | `MCS_MALFORMED_JSON` | The request body contains malformed JSON.
+500 | - | The server experienced an unexpected error.

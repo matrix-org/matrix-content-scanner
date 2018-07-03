@@ -24,7 +24,7 @@ const JoiError = require('./joi-error.js');
 const attachEncryptedBodySubApp = require('./encrypted-body-sub-app.js');
 
 function jsonErrorMiddleware(err, req, res, next) {
-    next(new ClientError(400, `Malformed JSON: ${err.message}`));
+    next(new ClientError(400, `Malformed JSON: ${err.message}`, 'MCS_MALFORMED_JSON'));
 }
 
 async function attachMiddlewares(app, opts) {

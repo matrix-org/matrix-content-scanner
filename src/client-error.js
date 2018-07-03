@@ -17,14 +17,16 @@ limitations under the License.
 **/
 
 module.exports = class ClientError extends Error {
-    constructor(status, message) {
+    constructor(status, message, reason) {
         super(`Client error: ${message}`);
         this.status = status;
+        this.reason = reason;
     }
 
     toJSON() {
         return {
             info: this.message,
+            reason: this.reason,
         }
     }
 }
