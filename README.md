@@ -144,7 +144,7 @@ POST .../download_encrypted HTTP/1.1
 {
   "encrypted_body": {
     "ciphertext":
-      "[base64-encoded string representing encrypted, JSON of original request body]",
+      "[base64-encoded string representing encrypted JSON of original request body]",
     "mac":
       "[base64-encoded string representing the MAC]",
     "ephemeral":
