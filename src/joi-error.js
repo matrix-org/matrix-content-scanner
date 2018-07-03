@@ -16,15 +16,23 @@ limitations under the License.
 
 **/
 
-module.exports = class ClientError extends Error {
-    constructor(status, message) {
-        super(`Client error: ${message}`);
-        this.status = status;
+const ClientError = require('./client-error.js');
+
+module.exports = class JoiError extends ClientError {
+    constructor(err) {
+        super(err.status, err.message);
+        // Joi validation generates a list of readable messages, concat them here
+        if (err.errors && err.errors.length > 0) {
+            this._validationErrors = err.errors.map(
+                e => e.field.join('.') + ': ' + e.messages.join(', ')
+            )
+        }
     }
 
     toJSON() {
         return {
             info: this.message,
+            validationErrors: this._validationErrors,
         }
     }
 }

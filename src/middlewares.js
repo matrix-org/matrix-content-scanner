@@ -19,6 +19,7 @@ limitations under the License.
 const express = require('express');
 const consoleMiddleware = require('./console-middleware.js');
 const ClientError = require('./client-error.js');
+const JoiError = require('./joi-error.js');
 
 const attachEncryptedBodySubApp = require('./encrypted-body-sub-app.js');
 
@@ -47,6 +48,36 @@ async function attachMiddlewares(app, opts) {
     const encryptedBodyApp = await attachEncryptedBodySubApp(app, encryptedBodyOpts);
 }
 
+function attachErrorMiddlewares(app) {
+    // Add a generic error handler to take care of anything unhandled, and also
+    // any ClientErrors that are thrown by the handlers.
+    app.use(errorMiddleware);
+}
+
+function errorMiddleware(err, req, res, next) {
+    // ClientError was thrown
+    if (err instanceof ClientError) {
+        respondWithError(req, res, err);
+        return;
+    }
+
+    // Joi validation throws errors of type Error, with a status field set
+    if (err.status !== undefined) {
+        respondWithError(req, res, new JoiError(err));
+        return;
+    }
+
+    req.console.error(`Unhandled error: '${err.message}'`);
+    req.console.error(err);
+
+    respondWithError(req, res, new ClientError(500, 'Unhandled server error'));
+}
+
+function respondWithError(req, res, err) {
+    res.status(err.status).json(err.toJSON());
+}
+
 module.exports = {
-    attachMiddlewares
+    attachMiddlewares,
+    attachErrorMiddlewares,
 };
