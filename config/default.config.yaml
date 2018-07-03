@@ -26,3 +26,18 @@ scan:
 # removed.
 #
 # altRemovalCmd: 'rm'
+
+# Configuration for using encrypted_body in POST requests.
+encryptedBody:
+    # The following configuration allows for the encrypted_body
+    # decryption key to be persisted to the file system. This means
+    # the public/private key pair will not change when the AV server
+    # is restarted.
+    #
+    # The pickle key secret used to unpickle the decryption key
+    pickleKey: 'some_random_secret'
+    # The file that the decryption key will be written to if the file
+    # does not exist. If it does exist, the file will be read from and
+    # the unpickled key will be used to decrypt encrypted_body
+    # requests.
+    picklePath: 'av_pickled_decryption.key'
