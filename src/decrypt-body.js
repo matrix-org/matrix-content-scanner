@@ -42,14 +42,14 @@ class BodyDecryptor {
         try {
             decrypted = this._decryption.decrypt(ephemeral, mac, ciphertext);
         } catch (err) {
-            throw new ClientError(403, `Bad decryption: ${err.message}`);
+            throw new ClientError(403, `Bad decryption: ${err.message}`, 'MCS_BAD_DECRYPTION');
         }
 
         let result;
         try {
             result = JSON.parse(decrypted);
         } catch (err) {
-            throw new ClientError(400, `Malformed JSON: ${err.message}`);
+            throw new ClientError(400, `Malformed JSON: ${err.message}`, 'MCS_MALFORMED_JSON');
         }
 
         return result;

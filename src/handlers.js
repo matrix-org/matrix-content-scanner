@@ -122,7 +122,7 @@ async function downloadHandler(req, res, next, matrixFile, thumbnailQueryParams)
     const cachedReport = await getReport(req.console, domain, mediaId, matrixFile, opts);
 
     if (cachedReport.scanned && !cachedReport.clean) {
-        throw new ClientError(403, cachedReport.info);
+        throw new ClientError(403, cachedReport.info, 'MCS_MEDIA_NOT_CLEAN');
     }
 
     const proxyDownloadWithTmpDir = withTempDir(tempDirectory, proxyDownload, getUnlinkFn(req.console));
@@ -145,7 +145,7 @@ async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQue
     } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, opts);
 
     if (!clean) {
-        throw new ClientError(403, info);
+        throw new ClientError(403, info, 'MCS_MEDIA_NOT_CLEAN');
     }
 
     req.console.info(`Sending ${filePath} to client`);

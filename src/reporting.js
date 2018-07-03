@@ -212,7 +212,7 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
 
         console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
 
-        throw new ClientError(502, 'Failed to get requested URL');
+        throw new ClientError(502, 'Failed to get requested URL', 'MCS_MEDIA_REQUEST_FAILED');
     }
 
     // Wait for the writable stream to close
@@ -269,7 +269,7 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             decryptFile(filePath, decryptedFilePath, matrixFile);
         } catch (err) {
             console.error(err);
-            throw new ClientError(400, 'Failed to decrypt file');
+            throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     }
 
