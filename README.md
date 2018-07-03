@@ -143,14 +143,17 @@ POST .../download_encrypted HTTP/1.1
 ...
 {
   "encrypted_body": {
-    "ciphertext":
-      "[base64-encoded string representing encrypted JSON of original request body]",
-    "mac":
-      "[base64-encoded string representing the MAC]",
-    "ephemeral":
-      "[base64-encoded string representing ephemeral public key]"
+    "ciphertext": "hpcyBpyBIGJ...bmNvZGVkIHN0cmluZw==",
+    "mac": "cyBpcyBhbm9...YmFzZT9kZWQgc3RyaW5n",
+    "ephemeral": "aSBhbSbFhsj...BhIHN0cmluZw=="
+  }
 }
 ```
+
+Request body fields:
+ - `encrypted_body.ciphertext`: The base64-encoded string representing encrypted JSON of the original request body.
+ - `encrypted_body.mac`: The base64-encoded string representing the MAC.
+ - `encrypted_body.ephemeral`: The base64-encoded string representing the ephemeral public key.
 
 ### `GET .../public_key`
 Returns the current public curve25519 key of server. This can be used to encrypt `encrypted_body` requests.
