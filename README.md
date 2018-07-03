@@ -18,6 +18,13 @@ Downloading media follows these steps:
 
 Retrieving scan results follows the same steps but exposes a different API, as explained in the [API section](#API).
 
+# Dependencies
+### Olm
+MCS requires the Olm library to handle `encrypted_body` requests. The version of Olm required is >2.2.2 and exposes the `PkEncryption` class. See [https://git.matrix.org/olm](https://git.matrix.org/olm).
+
+# Configuration
+See the [default configuration](config/default.config.yaml) for details.
+
 # Running
 MCS runs on node.js as an [express.js](https://expressjs.com) HTTP server exposed on the configured port.
 
@@ -40,9 +47,6 @@ npm run start -- config/matrix-content-scanner-config.yaml
 
 node src/index.js config/matrix-content-scanner-config.yaml
 ```
-
-# Configuration
-See the [default configuration](config/default.config.yaml) for details.
 
 # API
 
@@ -101,10 +105,11 @@ Response body fields:
 
 -----
 
-### `POST .../download_encrypted` and `POST .../scan_encrypted`
+### `POST .../download_encrypted`
+### `POST .../scan_encrypted`
 These are the same as `.../download` and `.../scan` but take input from the POST body.
 
-### Example request:
+#### Example Request
 ```http
 POST .../download_encrypted HTTP/1.1
 ...
@@ -129,3 +134,34 @@ Request body fields:
  - `file`: The data under the `file`, `thumbnail_file` fields or root of the content of a Matrix file event.
  - `file.url`: The MXC URL of the file to fetch from the HS.
  - `file.key`, `file.iv`, `file.hashes` and `file.key`: encryption data required to decrypt the media once downloaded.
+
+#### Example Encrypted Request
+The request body of any POST request can be encrypted using the public key exposed by `.../public_key`. This can be done by using the `PkEncryption` class from of the [Olm](https://git.matrix.org/git/olm) library.
+
+```http
+POST .../download_encrypted HTTP/1.1
+...
+{
+  “encrypted_body”: {
+    “ciphertext”:
+      “[base64-encoded string representing encrypted, stringified ‘file’]”,
+    “mac”:
+      “[base64-encoded string representing the MAC]”,
+    “ephemeral”:
+      “[base64-encoded string representing ephemeral public key]”
+}
+```
+
+### `GET .../public_key`
+Returns the current public curve25519 key of server. This can be used to encrypt `encrypted_body` requests.
+
+(TODO: indicate outdated public key with 403 JSON response when using `encrypted_body`.)
+
+#### Example Response
+```http
+HTTP/1.1 200 OK
+...
+{
+  "public_key": "[base64-encoded curve25519 public key of the server]"
+}
+```
