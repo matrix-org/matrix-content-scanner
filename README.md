@@ -171,6 +171,17 @@ HTTP/1.1 200 OK
 ```
 
 # Error Codes
+Client errors are exposed as JSON responses with HTTP error codes that are not 200. An error response might look like this:
+```http
+HTTP/1.1 403 Forbidden
+...
+{
+  "info": "***VIRUS DETECTED***",
+  "reason": "MCS_MEDIA_NOT_CLEAN"
+}
+```
+
+## Documented Error Codes
 
 Status Code | Reason | Description
 ------------|--------|------------
