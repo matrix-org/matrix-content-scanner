@@ -142,13 +142,13 @@ The request body of any POST request can be encrypted using the public key expos
 POST .../download_encrypted HTTP/1.1
 ...
 {
-  “encrypted_body”: {
-    “ciphertext”:
-      “[base64-encoded string representing encrypted, stringified ‘file’]”,
-    “mac”:
-      “[base64-encoded string representing the MAC]”,
-    “ephemeral”:
-      “[base64-encoded string representing ephemeral public key]”
+  "encrypted_body": {
+    "ciphertext":
+      "[base64-encoded string representing encrypted, stringified ‘file’]",
+    "mac":
+      "[base64-encoded string representing the MAC]",
+    "ephemeral":
+      "[base64-encoded string representing ephemeral public key]"
 }
 ```
 
