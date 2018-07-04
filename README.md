@@ -20,7 +20,7 @@ Retrieving scan results follows the same steps but exposes a different API, as e
 
 # Dependencies
 ### Olm
-MCS requires the Olm library to handle `encrypted_body` requests. The version of Olm required is >2.2.2 and exposes the `PkEncryption` class. See [https://git.matrix.org/olm](https://git.matrix.org/olm).
+MCS requires the Olm library to handle `encrypted_body` requests. The version of Olm required is >2.2.2 and exposes the `PkEncryption` class. See [https://git.matrix.org/git/olm/](https://git.matrix.org/git/olm/).
 
 # Configuration
 See the [default configuration](config/default.config.yaml) for details.
