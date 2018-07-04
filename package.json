@@ -14,6 +14,7 @@
     "express-validation": "^1.0.2",
     "joi": "^13.3.0",
     "js-yaml": "^3.12.0",
+    "olm": "https://matrix.org/packages/npm/olm/olm-2.3.0.tgz",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "rimraf": "^2.6.2"
