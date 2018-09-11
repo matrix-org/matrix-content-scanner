@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "express": "^4.16.3",
+    "cors": "^2.8.4",
     "express-validation": "^1.0.2",
     "joi": "^13.3.0",
     "js-yaml": "^3.12.0",
