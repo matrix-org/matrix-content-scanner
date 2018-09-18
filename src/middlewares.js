@@ -32,7 +32,7 @@ async function attachMiddlewares(app, opts) {
     // Add req.console for nicer formatted logs
     app.use(consoleMiddleware);
 
-    var corsOptions = {
+    const corsOptions = {
         origin: '*',
         methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
