@@ -34,9 +34,9 @@ async function attachMiddlewares(app, opts) {
 
     var corsOptions = {
         origin: '*',
-	methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
-	allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
-		         'Authorization']
+        methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
+                         'Authorization']
     }
     app.use(cors(corsOptions));
 
