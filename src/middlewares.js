@@ -17,6 +17,7 @@ limitations under the License.
 **/
 
 const express = require('express');
+const cors = require('cors');
 const consoleMiddleware = require('./console-middleware.js');
 const ClientError = require('./client-error.js');
 const JoiError = require('./joi-error.js');
@@ -30,6 +31,14 @@ function jsonErrorMiddleware(err, req, res, next) {
 async function attachMiddlewares(app, opts) {
     // Add req.console for nicer formatted logs
     app.use(consoleMiddleware);
+
+    const corsOptions = {
+        origin: '*',
+        methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
+                         'Authorization']
+    }
+    app.use(cors(corsOptions));
 
     // Add express-provided JSON but give it it's own unique error handling instead
     // of falling back on the generic one - handing these back to the client is OK.
