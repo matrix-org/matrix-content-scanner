@@ -26,6 +26,9 @@ const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
 
+const { getConfig } = require('./config.js');
+const fileType = require('file-type');
+
 // Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
     const hash = crypto.createHash('sha256');
@@ -260,17 +263,28 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     // By default, the file is considered decrypted
     let decryptedFilePath = filePath;
+	  let mimetypeArray = getConfig().acceptedMimeType;
 
     if (matrixFile && matrixFile.key) {
         decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
-
+			  console.info(`FileType: ${matrixFile.mimetype}`);
+			  if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
+  				return {clean: false, info: 'File type not supported'};
+  			}
         try {
             decryptFile(filePath, decryptedFilePath, matrixFile);
         } catch (err) {
             console.error(err);
             throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
+    } else {
+			  let fileData = fs.readFileSync(filePath);
+			  let type = fileType(fileData);
+			  console.info(`FileType: ${type.mime}`);
+			  if (mimetypeArray && !mimetypeArray.includes(type.mime)) {
+  				return {clean: false, info: 'File type not supported'};
+  			}
     }
 
     const cmd = script + ' ' + decryptedFilePath;
