@@ -258,11 +258,10 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
         return reportCache[reportHash];
     }
 
-    // By default, the file is considered decrypted
-    let decryptedFilePath = filePath;
+    // Always make a decryptedFile on disk
+    let decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
 
     if (matrixFile && matrixFile.key) {
-        decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
 
         try {
@@ -270,6 +269,13 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
         } catch (err) {
             console.error(err);
             throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
+        }
+    } else {
+        try {
+            fs.copyFileSync(filePath, decryptedFilePath);
+        } catch (err) {
+            console.error(err);
+            throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     }
 
