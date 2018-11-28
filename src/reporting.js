@@ -281,10 +281,14 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
     } else {
 			  let fileData = fs.readFileSync(filePath);
 			  let type = fileType(fileData);
-			  console.info(`FileType: ${type.mime}`);
-			  if (mimetypeArray && !mimetypeArray.includes(type.mime)) {
-  				return {clean: false, info: 'File type not supported'};
-  			}
+			  if (mimetypeArray) {
+			      if (type === null) {
+							return {clean: false, info: 'File type not supported'};
+            } else if (!mimetypeArray.includes(type.mime)) {
+							console.info(`FileType: ${type.mime}`);
+							return {clean: false, info: 'File type not supported'};
+            }
+        }
     }
 
     const cmd = script + ' ' + decryptedFilePath;

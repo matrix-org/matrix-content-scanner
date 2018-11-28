@@ -42,3 +42,9 @@ middleware:
         # the unpickled key will be used to decrypt encrypted_body
         # requests.
         picklePath: 'av_pickled_decryption.key'
+
+# Optional. A list of accepted mime type.
+#acceptedMimeType:
+#    - 'image/jpeg'
+#    - 'image/jpg'
+#    - 'image/png'
