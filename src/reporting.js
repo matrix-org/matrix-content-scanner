@@ -263,15 +263,15 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     // By default, the file is considered decrypted
     let decryptedFilePath = filePath;
-	  let mimetypeArray = getConfig().acceptedMimeType;
+    let mimetypeArray = getConfig().acceptedMimeType;
 
     if (matrixFile && matrixFile.key) {
         decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
-			  console.info(`FileType: ${matrixFile.mimetype}`);
-			  if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
-  				return {clean: false, info: 'File type not supported'};
-  			}
+        console.info(`FileType: ${matrixFile.mimetype}`);
+        if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
+            return {clean: false, info: 'File type not supported'};
+        }
         try {
             decryptFile(filePath, decryptedFilePath, matrixFile);
         } catch (err) {
@@ -279,14 +279,14 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     } else {
-			  let fileData = fs.readFileSync(filePath);
-			  let type = fileType(fileData);
-			  if (mimetypeArray) {
-			      if (type === null) {
-							return {clean: false, info: 'File type not supported'};
+        let fileData = fs.readFileSync(filePath);
+        let type = fileType(fileData);
+        if (mimetypeArray) {
+            if (type === null) {
+                return {clean: false, info: 'File type not supported'};
             } else if (!mimetypeArray.includes(type.mime)) {
-							console.info(`FileType: ${type.mime}`);
-							return {clean: false, info: 'File type not supported'};
+                console.info(`FileType: ${type.mime}`);
+                return {clean: false, info: 'File type not supported'};
             }
         }
     }
