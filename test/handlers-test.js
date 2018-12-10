@@ -68,6 +68,46 @@ describe('handlers', () => {
                     assert(response.body.clean, true);
                 });
         });
+
+				it('responds with a bad scan report if the mimetype is not accepted in the configuration file', async () => {
+						setConfig({
+						 		scan: {
+										baseUrl: "https://matrix.org",
+										tempDirectory: "/tmp",
+										script: "exit 0"
+								},
+								altRemovalCmd: 'rm',
+								acceptedMimeType: ['image/jpg']
+						});
+						const app = await createApp();
+						return request(app)
+								.get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+								.expect('Content-Type', /json/)
+								.expect(200)
+								.then(response => {
+										assert.strictEqual(response.body.clean, false);
+						});
+				});
+
+				it('responds with a scan report if the mimetype is accepted in the configuration file', async () => {
+						setConfig({
+								scan: {
+										baseUrl: "https://matrix.org",
+										tempDirectory: "/tmp",
+										script: "exit 0"
+								},
+								altRemovalCmd: 'rm',
+								acceptedMimeType: ['image/png']
+						});
+						const app = await createApp();
+						return request(app)
+								.get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+								.expect('Content-Type', /json/)
+								.expect(200)
+								.then(response => {
+										assert(response.body.clean, true);
+							});
+					});
     });
 
     describe('GET /_matrix/media_proxy/unstable/thumbnail/matrix.org/EawFuailhYTuSPSGDGsNFigt?width=100&height=100&method=scale', () => {
