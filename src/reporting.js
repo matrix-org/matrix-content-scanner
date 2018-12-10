@@ -25,6 +25,7 @@ const executeCommand = require('./execute-cmd.js');
 const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
+const { getConfig } = require('./config.js');
 
 // Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
@@ -194,8 +195,15 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
     try {
         downloadHeaders = await new Promise((resolve, reject) => {
             let responseHeaders;
+	    let connect = {url: httpUrl, encoding: null, qs: thumbnailQueryParams};
+	    const config = getConfig();
+	    const proxy = config.proxy;
+	    if (proxy != null) {
+		connect = {url: httpUrl,proxy: proxy, encoding: null, qs: thumbnailQueryParams};
+	    }
+
             request
-                .get({url: httpUrl, encoding: null, qs: thumbnailQueryParams})
+                .get(connect)
                 .on('error', reject)
                 .on('response', (response) => {
                     responseHeaders = response.headers;

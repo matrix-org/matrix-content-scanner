@@ -27,6 +27,9 @@ scan:
 #
 # altRemovalCmd: 'rm'
 
+# Optional. If need to use a proxy to access baseUrl
+# proxy: "http://10.228.1.1;:80"
+
 middleware:
     # Configuration for using encrypted_body in POST requests.
     encryptedBody:
