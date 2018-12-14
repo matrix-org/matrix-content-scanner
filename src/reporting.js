@@ -261,12 +261,11 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
         return reportCache[reportHash];
     }
 
-    // By default, the file is considered decrypted
-    let decryptedFilePath = filePath;
     let mimetypeArray = getConfig().acceptedMimeType;
+    // Always make a decryptedFile on disk
+    let decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
 
     if (matrixFile && matrixFile.key) {
-        decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
         console.info(`FileType: ${matrixFile.mimetype}`);
         if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
@@ -288,6 +287,11 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
                 console.info(`FileType: ${type.mime}`);
                 return {clean: false, info: 'File type not supported'};
             }
+        try {
+            fs.copyFileSync(filePath, decryptedFilePath);
+        } catch (err) {
+            console.error(err);
+            throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     }
 
