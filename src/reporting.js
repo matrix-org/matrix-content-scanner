@@ -199,7 +199,7 @@ async function _generateReportFromDownload(console, domain, mediaId, matrixFile,
 	    const config = getConfig();
 	    const proxy = config.proxy;
 	    if (proxy != null) {
-		connect = {url: httpUrl,proxy: proxy, encoding: null, qs: thumbnailQueryParams};
+		connect.proxy = proxy;
 	    }
 
             request
