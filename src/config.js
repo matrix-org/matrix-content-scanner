@@ -32,6 +32,7 @@ const configSchema = Joi.object().keys({
         directDownload: Joi.boolean(),
     }).required(),
     altRemovalCmd: Joi.string(),
+    proxy: Joi.string(),
     middleware: Joi.object().keys({
         encryptedBody: Joi.object().keys({
             pickleKey: Joi.string().required(),
