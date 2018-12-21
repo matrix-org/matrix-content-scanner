@@ -26,6 +26,9 @@ const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
 
+const { getConfig } = require('./config.js');
+const fileType = require('file-type');
+
 // Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
     const hash = crypto.createHash('sha256');
@@ -258,12 +261,16 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
         return reportCache[reportHash];
     }
 
+    let mimetypeArray = getConfig().acceptedMimeType;
     // Always make a decryptedFile on disk
     let decryptedFilePath = path.join(tempDir, 'unsafeDownloadedDecryptedFile');
 
     if (matrixFile && matrixFile.key) {
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
-
+        console.info(`FileType: ${matrixFile.mimetype}`);
+        if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
+            return {clean: false, info: 'File type not supported'};
+        }
         try {
             decryptFile(filePath, decryptedFilePath, matrixFile);
         } catch (err) {
@@ -271,11 +278,21 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     } else {
-        try {
-            fs.copyFileSync(filePath, decryptedFilePath);
-        } catch (err) {
-            console.error(err);
-            throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
+        let fileData = fs.readFileSync(filePath);
+        let type = fileType(fileData);
+        if (mimetypeArray) {
+            if (type === null) {
+                return {clean: false, info: 'File type not supported'};
+            } else if (!mimetypeArray.includes(type.mime)) {
+                console.info(`FileType: ${type.mime}`);
+                return {clean: false, info: 'File type not supported'};
+            }
+            try {
+                fs.copyFileSync(filePath, decryptedFilePath);
+            } catch (err) {
+                console.error(err);
+                throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
+            }
         }
     }
 

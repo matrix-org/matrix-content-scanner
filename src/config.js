@@ -38,6 +38,7 @@ const configSchema = Joi.object().keys({
             picklePath: Joi.string().required(),
         }),
     }),
+	acceptedMimeType: Joi.array(),
 });
 
 // Exported alongside mechanism to load particular configuarion
