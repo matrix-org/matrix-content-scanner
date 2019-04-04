@@ -293,12 +293,12 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
                 console.info(`FileType: ${type.mime}`);
                 return {clean: false, info: 'File type not supported'};
             }
-            try {
-                fs.copyFileSync(filePath, decryptedFilePath);
-            } catch (err) {
-                console.error(err);
-                throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
-            }
+        }
+        try {
+            fs.copyFileSync(filePath, decryptedFilePath);
+        } catch (err) {
+            console.error(err);
+            throw new ClientError(400, 'Failed to copy file for decryption', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     }
 
