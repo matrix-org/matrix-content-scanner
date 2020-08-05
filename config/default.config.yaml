@@ -30,6 +30,20 @@ scan:
 # Optional. If need to use a proxy to access baseUrl
 # proxy: "http://10.228.1.1:80"
 
+# Optional. Settings to send HTTP header in download requests from
+# content scanner to homeserver
+#requestHeader:
+    # Optional. If need to send a 'user-agent' header
+    # 'origin' to set the user agent of request for content scanner
+    # or custom string eg. 'matrix-content-scanner'
+    # userAgent: 'matrix-content-scanner'
+    #
+    # Optional. If need to send a 'x-forwarded-for' header
+    # 'origin' to set the client IP address of request for content
+    # scanner or a custom HTTP header of client request
+    # eg. 'x-forwarded-for'
+    # xForward: 'x-forwarded-for'
+
 middleware:
     # Configuration for using encrypted_body in POST requests.
     encryptedBody:
