@@ -28,7 +28,7 @@ const assert = require('assert');
 const generateConfig = {
     baseUrl: "https://matrix.org",
     tempDirectory: "/tmp",
-    script: "exit 0 #"
+    script: "true"
 };
 
 const example = require('../example.file.json');
@@ -114,7 +114,7 @@ describe('reporting.js', () => {
                 tempDirectory: "/tmp",
 
                 // Script that will always mark a file as unsafe
-                script: "exit 1 #",
+                script: "false",
             };
             const report = await generateDecryptedReportFromFile(modifiedConfig);
 

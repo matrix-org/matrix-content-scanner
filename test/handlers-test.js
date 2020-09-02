@@ -32,7 +32,7 @@ describe('handlers', () => {
             scan: {
                 baseUrl: "https://matrix.org",
                 tempDirectory: "/tmp",
-                script: "exit 0 #"
+                script: "true"
             },
             altRemovalCmd: 'rm'
         });
@@ -74,7 +74,7 @@ describe('handlers', () => {
                 scan: {
                 baseUrl: "https://matrix.org",
                     tempDirectory: "/tmp",
-                    script: "exit 0 #"
+                    script: "true"
                 },
                 altRemovalCmd: 'rm',
                 acceptedMimeType: ['image/jpg']
@@ -94,7 +94,7 @@ describe('handlers', () => {
                 scan: {
                     baseUrl: "https://matrix.org",
                     tempDirectory: "/tmp",
-                    script: "exit 0 #"
+                    script: "true"
                 },
                 altRemovalCmd: 'rm',
                 acceptedMimeType: ['image/png']
