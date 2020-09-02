@@ -34,14 +34,13 @@ scan:
 # content scanner to homeserver
 #requestHeader:
     # Optional. If need to send a 'user-agent' header
-    # 'origin' to set the user agent of request for content scanner
-    # or custom string eg. 'matrix-content-scanner'
+    # If set to 'origin', uses the user agent used by the client
+    # when sending the request to the content scanner
     # userAgent: 'matrix-content-scanner'
     #
     # Optional. If need to send a 'x-forwarded-for' header
-    # 'origin' to set the client IP address of request for content
-    # scanner or a custom HTTP header of client request
-    # eg. 'x-forwarded-for'
+    # If set to 'origin', uses the IP address of the client that
+    # sent the request to the content scanner
     # xForward: 'x-forwarded-for'
 
 middleware:
