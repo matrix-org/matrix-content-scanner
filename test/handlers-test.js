@@ -74,7 +74,7 @@ describe('handlers', () => {
                 scan: {
                 baseUrl: "https://matrix.org",
                     tempDirectory: "/tmp",
-                    script: "exit 0"
+                    script: "exit 0 #"
                 },
                 altRemovalCmd: 'rm',
                 acceptedMimeType: ['image/jpg']
