@@ -46,7 +46,7 @@ module.exports = function decryptData(dataBuffer, info) {
             `key.kty = ${info.key.kty}, kry.alg = ${info.key.alg}`);
     }
 
-    const key = new Buffer(info.key.k, 'base64');
+    const key = Buffer.from(info.key.k, 'base64');
 
     // Calculate SHA 256 hash, encode as base64 without padding
     const hash = crypto.createHash('sha256');
@@ -65,7 +65,7 @@ module.exports = function decryptData(dataBuffer, info) {
     // NB: in the original browser-encrypt-attachment, the number of bits used of the
     // IV or "counter" varied on the version (info.v). In practice, no changes to the
     // IV were necessary, at least not for version 2.
-    const iv = new Buffer(info.iv, 'base64');
+    const iv = Buffer.from(info.iv, 'base64');
 
     const decipher = crypto.createDecipheriv(alg, key, iv);
 
