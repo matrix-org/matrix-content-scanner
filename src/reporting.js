@@ -274,23 +274,44 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
     if (matrixFile && matrixFile.key) {
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
         console.info(`FileType: ${matrixFile.mimetype}`);
+
+        // Do an initial check of the mimetype based on what is reported by the client
         if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
             return {clean: false, info: 'File type not supported'};
         }
+
+        // Decrypt the file
+        let decryptedFileContents;
         try {
-            decryptFile(filePath, decryptedFilePath, matrixFile);
+            decryptedFileContents = decryptFile(filePath, matrixFile);
         } catch (err) {
             console.error(err);
             throw new ClientError(400, 'Failed to decrypt file', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
+
+        // Further validate the mimetype of the file from the decrypted content
+        let mimetype = fileType(decryptedFileContents);
+        if (mimetype === null) {
+            return {clean: false, info: 'File type not supported'};
+        } else if (mimetypeArray && !mimetypeArray.includes(mimetype)) {
+            return {clean: false, info: 'File type not supported'};
+        }
+
+        // Write the decrypt file bytes to disk
+        try {
+            fs.writeFileSync(decryptedFilePath, decryptedFileContents);
+        } catch (err) {
+            console.error(err);
+            throw new ClientError(400, 'Failed to write decrypted file to disk', 'MCS_MEDIA_FAILED_TO_DECRYPT');
+        }
     } else {
         let fileData = fs.readFileSync(filePath);
-        let type = fileType(fileData);
+        let mimetype = fileType(fileData);
         if (mimetypeArray) {
-            if (type === null) {
+            if (mimetype === null) {
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(type.mime)) {
-                console.info(`FileType: ${type.mime}`);
+            } else if (mimetypeArray && !mimetypeArray.includes(mimetype.mime)) {
+                console.info(`FileType: ${mimetype.mime}`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
