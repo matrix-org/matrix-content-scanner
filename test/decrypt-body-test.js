@@ -17,7 +17,7 @@ limitations under the License.
 **/
 
 const assert = require('assert');
-const { PkEncryption } = require('olm');
+const { PkEncryption } = require('@matrix-org/olm');
 const BodyDecryptor = require('../src/decrypt-body.js');
 const ClientError = require('../src/client-error.js');
 

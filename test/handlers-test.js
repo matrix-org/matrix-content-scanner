@@ -18,7 +18,7 @@ limitations under the License.
 
 const request = require('supertest');
 const assert = require('assert');
-const { PkEncryption } = require('olm');
+const { PkEncryption } = require('@matrix-org/olm');
 
 const { createApp } = require('../src/app.js');
 const { clearReportCache } = require('../src/reporting.js');

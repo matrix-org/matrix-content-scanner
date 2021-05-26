@@ -21,7 +21,7 @@ const assert = require('assert');
 const express = require('express');
 const validate = require('express-validation');
 const Joi = require('joi');
-const { PkEncryption } = require('olm');
+const { PkEncryption } = require('@matrix-org/olm');
 
 const { attachMiddlewares, attachErrorMiddlewares } = require('../src/middlewares.js');
 const ClientError = require('../src/client-error.js');

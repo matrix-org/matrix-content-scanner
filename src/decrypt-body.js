@@ -16,12 +16,12 @@ limitations under the License.
 
 **/
 
-const { PkDecryption } = require('olm');
+const { PkDecryption } = require('@matrix-org/olm');
 const ClientError = require('../src/client-error.js');
 
 class BodyDecryptor {
     constructor(pickleKey, pickle) {
-        this._decryption = new PkDecryption();
+        this._decryption = PkDecryption();
         this._pickleKey = pickleKey;
 
         if (pickleKey && pickle) {
