@@ -16,12 +16,11 @@ limitations under the License.
 
 **/
 
-const { PkDecryption } = require('olm');
 const ClientError = require('../src/client-error.js');
 
 class BodyDecryptor {
     constructor(pickleKey, pickle) {
-        this._decryption = new PkDecryption();
+        this._decryption = new global.Olm.PkDecryption();
         this._pickleKey = pickleKey;
 
         if (pickleKey && pickle) {

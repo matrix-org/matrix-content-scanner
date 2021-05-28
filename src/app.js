@@ -18,7 +18,6 @@ limitations under the License.
 
 const express = require('express');
 
-const ClientError = require('./client-error.js');
 const { attachMiddlewares, attachErrorMiddlewares } = require('./middlewares.js');
 const { attachHandlers } = require('./handlers.js');
 
@@ -29,6 +28,17 @@ const path = require('path');
 
 async function createApp(middlewareOpts) {
     const app = express();
+
+    // Load and initialise olm
+    console.debug("Initialising Olm lib...")
+    try {
+        // Store Olm under the global namespace as we'll need to use it elsewhere
+        global.Olm = require('@matrix-org/olm');
+        await global.Olm.init();
+    } catch (err) {
+        console.error("Failed to initialise olm library")
+        process.exit(1)
+    }
 
     await attachMiddlewares(app, middlewareOpts);
     attachHandlers(app);
