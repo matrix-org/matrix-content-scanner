@@ -17,21 +17,35 @@ limitations under the License.
 **/
 
 const assert = require('assert');
-const { PkEncryption } = require('@matrix-org/olm');
 const BodyDecryptor = require('../src/decrypt-body.js');
 const ClientError = require('../src/client-error.js');
-
 const PICKLE_KEY = 'secret_key';
-const decryptor = new BodyDecryptor(PICKLE_KEY);
-
-// In reality, getting the public key, and doing an encryption is done
-// client-side.
-const publicKey = decryptor.getPublicKey();
-
-const encryption = new PkEncryption();
-encryption.set_recipient_key(publicKey);
 
 describe('decryptBody', () => {
+    let encryption;
+    let decryption;
+    let publicKey;
+
+    before("Initialise Olm library", async () => {
+        try {
+            // Store Olm under the global namespace as we'll need to use it elsewhere
+            global.Olm = require('@matrix-org/olm');
+            await global.Olm.init();
+        } catch (err) {
+            console.error("Failed to initialise olm library")
+            process.exit(1)
+        }
+
+        // Setup necessary test variables
+        encryption = new global.Olm.PkEncryption();
+        decryption = new BodyDecryptor(PICKLE_KEY);
+
+        // In reality, getting the public key, and doing an encryption is done
+        // client-side.
+        publicKey = decryption.getPublicKey();
+        encryption.set_recipient_key(publicKey);
+    });
+
     it('should decrypt an encrypted body', async () => {
         const plainBody = {
             some: 'body',
@@ -42,7 +56,7 @@ describe('decryptBody', () => {
         };
         const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
 
-        const decryptedBody = decryptor.decryptBody(encryptedBody);
+        const decryptedBody = decryption.decryptBody(encryptedBody);
         assert.deepStrictEqual(decryptedBody, plainBody);
     });
 
@@ -50,7 +64,7 @@ describe('decryptBody', () => {
         const encryptedBody = encryption.encrypt('this is not JSON');
 
         assert.throws(
-            () => decryptor.decryptBody(encryptedBody),
+            () => decryption.decryptBody(encryptedBody),
             (e) => e instanceof ClientError && e.status === 400,
         );
     });
@@ -68,13 +82,13 @@ describe('decryptBody', () => {
         encryptedBody.mac = "this is not the mac";
 
         assert.throws(
-            () => decryptor.decryptBody(encryptedBody),
+            () => decryption.decryptBody(encryptedBody),
             (e) => e instanceof ClientError && e.status === 403,
         );
     });
 
     it('should unpickle a pickled PkDecryption when created with a pickleKey & pickle', () => {
-        const pickle = decryptor.pickle(PICKLE_KEY);
+        const pickle = decryption.pickle(PICKLE_KEY);
         const unpickledDecryptor = new BodyDecryptor(PICKLE_KEY, pickle);
 
         const plainBody = {

@@ -45,6 +45,17 @@ async function createMiddlewareApp(attachHandlers) {
 }
 
 describe('middleware', () => {
+    before("Initialise Olm library", async () => {
+        try {
+            // Store Olm under the global namespace as we'll need to use it elsewhere
+            global.Olm = require('@matrix-org/olm');
+            await global.Olm.init();
+        } catch (err) {
+            console.error("Failed to initialise olm library")
+            process.exit(1)
+        }
+    });
+
     it('responds with 400 if Joi validation fails', async () => {
         const endpointSchema = {
             body: {
@@ -122,7 +133,7 @@ describe('middleware', () => {
             .get('/_matrix/media_proxy/unstable/public_key')
             .then(response => response.body.public_key);
 
-        const encryption = new PkEncryption();
+        const encryption = new global.Olm.PkEncryption();
         encryption.set_recipient_key(publicKey);
 
         const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));

@@ -27,6 +27,17 @@ const example = require('../example.file.json');
 const { setConfig } = require('../src/config.js');
 
 describe('handlers', () => {
+    before("Initialise Olm library", async () => {
+        try {
+            // Store Olm under the global namespace as we'll need to use it elsewhere
+            global.Olm = require('@matrix-org/olm');
+            await global.Olm.init();
+        } catch (err) {
+            console.error("Failed to initialise olm library")
+            process.exit(1)
+        }
+    });
+
     beforeEach(() => {
         setConfig({
             scan: {
@@ -147,7 +158,7 @@ describe('handlers', () => {
                 .get('/_matrix/media_proxy/unstable/public_key')
                 .then(response => response.body.public_key);
 
-            const encryption = new PkEncryption();
+            const encryption = new global.Olm.PkEncryption();
             encryption.set_recipient_key(publicKey);
             const encryptedBody = encryption.encrypt(JSON.stringify(plainBody));
 
