@@ -6,7 +6,9 @@ COPY package*.json ./
 
 RUN npm install
 
-FROM node:14-alpine
+FROM node:14-slim
+
+RUN apt-get update && apt-get install -y secure-delete && apt-get clean
 
 WORKDIR /usr/src/app
 
