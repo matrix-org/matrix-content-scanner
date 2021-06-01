@@ -142,7 +142,7 @@ async function proxyDownload(req, res, domain, mediaId, matrixFile, thumbnailQue
 
     const {
         clean, info, filePath, headers
-    } = await generateReportFromDownload(req.console, domain, mediaId, matrixFile, opts);
+    } = await generateReportFromDownload(req, domain, mediaId, matrixFile, opts);
 
     if (!clean) {
         throw new ClientError(403, info, 'MCS_MEDIA_NOT_CLEAN');
@@ -185,7 +185,7 @@ async function scanReportHandler(req, res, next, matrixFile) {
             getUnlinkFn(req.console),
         );
         result = await generateReportFromDownloadWithTmpDir(
-            req.console, domain, mediaId, matrixFile, config.scan
+            req, domain, mediaId, matrixFile, config.scan
         );
     }
 

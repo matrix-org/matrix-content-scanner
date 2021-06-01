@@ -33,6 +33,10 @@ const configSchema = Joi.object().keys({
     }).required(),
     altRemovalCmd: Joi.string(),
     proxy: Joi.string(),
+    requestHeader: Joi.object().keys({
+        userAgent: Joi.string(),
+        xForward: Joi.string(),
+    }),
     middleware: Joi.object().keys({
         encryptedBody: Joi.object().keys({
             pickleKey: Joi.string().required(),
