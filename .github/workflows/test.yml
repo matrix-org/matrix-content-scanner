@@ -1,0 +1,13 @@
+name: Unit tests
+on: [push]
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Retrieve dependencies and set up the test environment
+      - run: make build
+
+      # Run the tests
+      - run: make test
