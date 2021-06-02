@@ -1,5 +1,12 @@
 name: Unit tests
-on: [push]
+on:
+  # Trigger the workflow on a pull request,, or when committing
+  # 'main' branch
+  pull_request:
+  push:
+    branches:
+      - main
+
 jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
