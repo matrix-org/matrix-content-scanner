@@ -24,5 +24,7 @@ scan:
 # system instead of using node's fs.unlink. When executed, the first
 # argument to the command will be the path of the file being
 # removed.
+# Docker note: the `srm` utility is already bundled into the base Docker image
+# built by the project. See `Dockerfile` for additional notes.
 #
 altRemovalCmd: 'srm'
