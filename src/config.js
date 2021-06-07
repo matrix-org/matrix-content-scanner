@@ -19,6 +19,7 @@ limitations under the License.
 const yaml = require('js-yaml');
 const fs = require('fs');
 const Joi = require('joi');
+const tunnel = require('tunnel');
 
 const configSchema = Joi.object().keys({
     server: Joi.object().keys({
@@ -58,7 +59,36 @@ function loadConfig(filePath) {
     }
 }
 
+/**
+ * Create a tunnel agent through a proxy to a URL. Detects whether to use SSL for the
+ * connection to the proxy.
+ *
+ * @returns {tunnel.tunnel} A HTTP/HTTPS tunnel to the configured proxy.
+ **/
+function createProxyTunnel() {
+    const proxyUrl = getConfig().proxy;
+
+    // Build a proxy connection.
+    // Note that the final URL is always assumed here to be HTTPS
+    if (proxyUrl.startsWith("https://")) {
+        // https tunnel
+        return tunnel.httpsOverHttps({
+            proxy: {
+                host: proxyUrl,
+            }
+        });
+    }
+
+    // http tunnel
+    return tunnel.httpsOverHttp({
+        proxy: {
+            host: proxyUrl,
+        }
+    });
+}
+
 module.exports = {
+    createProxyTunnel,
     loadConfig,
     setConfig: (c) => config = c,
     getConfig: () => config,
