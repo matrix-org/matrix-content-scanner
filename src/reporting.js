@@ -222,16 +222,13 @@ async function _generateReportFromDownload(req, domain, mediaId, matrixFile, opt
             // Base options for the request
             const opts = {
                 url: httpUrl,
-                headers: {
-                    'content-type': 'application/octet-stream',
-                }
             };
 
             const config = getConfig();
 
             // Add additional request headers if configured
             if (config.requestHeader != null) {
-                opts.headers += generateRequestHeaders(config.requestHeader, req);
+                opts.headers = generateRequestHeaders(config.requestHeader, req);
                 console.debug(`Request headers are`, connect.headers);
             }
 
