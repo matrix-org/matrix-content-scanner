@@ -59,36 +59,7 @@ function loadConfig(filePath) {
     }
 }
 
-/**
- * Create a tunnel agent through a proxy to a URL. Detects whether to use SSL for the
- * connection to the proxy.
- *
- * @returns {tunnel.tunnel} A HTTP/HTTPS tunnel to the configured proxy.
- **/
-function createProxyTunnel() {
-    const proxyUrl = getConfig().proxy;
-
-    // Build a proxy connection.
-    // Note that the final URL is always assumed here to be HTTPS
-    if (proxyUrl.startsWith("https://")) {
-        // https tunnel
-        return tunnel.httpsOverHttps({
-            proxy: {
-                host: proxyUrl,
-            }
-        });
-    }
-
-    // http tunnel
-    return tunnel.httpsOverHttp({
-        proxy: {
-            host: proxyUrl,
-        }
-    });
-}
-
 module.exports = {
-    createProxyTunnel,
     loadConfig,
     setConfig: (c) => config = c,
     getConfig: () => config,

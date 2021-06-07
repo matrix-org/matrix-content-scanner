@@ -26,7 +26,8 @@ const executeCommand = require('./execute-cmd.js');
 const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
-const { createProxyTunnel, getConfig } = require('./config.js');
+const { getConfig } = require('./config.js');
+const {createProxyTunnel } = require('./proxy.js');
 const fileType = require('file-type');
 
 // Generate a bas64 SHA 256 hash of the input string
