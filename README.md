@@ -3,8 +3,6 @@ Matrix Content Scanner
 
 A Web service for scanning media hosted on a [Matrix](https://matrix.org) content repository.
 
-[![Build Status](https://travis-ci.org/matrix-org/matrix-content-scanner.svg?branch=master)](https://travis-ci.org/matrix-org/matrix-content-scanner)
-
 # Introduction
 
 MCS allows for arbitrary scanning of content hosted on Matrix. When a Matrix client requests media
