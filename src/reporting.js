@@ -18,7 +18,8 @@ limitations under the License.
 
 const path = require('path');
 const fs = require('fs');
-const request = require('request');
+const get = require('simple-get');
+const querystring = require('querystring');
 
 const ClientError = require('./client-error.js');
 const executeCommand = require('./execute-cmd.js');
@@ -26,6 +27,7 @@ const decryptFile = require('./decrypt-file.js');
 
 const crypto = require('crypto');
 const { getConfig } = require('./config.js');
+const {createProxyTunnel } = require('./proxy.js');
 const fileType = require('file-type');
 
 // Generate a bas64 SHA 256 hash of the input string
@@ -158,7 +160,7 @@ const generateReportFromDownload = deduplicatePromises(getInputHash, _generateRe
 /**
  * Download a matrix media file and generate and cache a scan report for it.
  *
- * @param {object} req The request object to use console for logging and get request header.
+ * @param {object} req The request object. Both the console and existing request headers are used.
  * @param {string} domain The domain part of the MXC.
  * @param {string} mediaId The media ID part of the MXC.
  * @param {string} matrixFile The content of a matrix file event. (Or "[thumbnail]_file" under an
@@ -215,39 +217,49 @@ async function _generateReportFromDownload(req, domain, mediaId, matrixFile, opt
     console.info(`Downloading ${httpUrl}, writing to ${filePath}`);
 
     let downloadHeaders;
-    let response;
 
     try {
         downloadHeaders = await new Promise((resolve, reject) => {
-            let responseHeaders;
-	    let connect = {url: httpUrl, encoding: null, qs: thumbnailQueryParams};
-	    const config = getConfig();
-	    const proxy = config.proxy;
-	    if (proxy != null) {
-		connect.proxy = proxy;
-	    }
-	    if (config.requestHeader != null) {
-		connect.headers = generateRequestHeaders(config.requestHeader, req);
-		console.info(`Request headers are`, connect.headers);
-	    }
+            // Base options for the request
+            const opts = {
+                url: httpUrl,
+            };
 
-            request
-                .get(connect)
-                .on('error', reject)
-                .on('response', (response) => {
-                    responseHeaders = response.headers;
-                })
-                .on('end', () => {
-                    resolve(responseHeaders);
-                })
-                .pipe(fileWriteStream);
+            const config = getConfig();
+
+            // Add additional request headers if configured
+            if (config.requestHeader != null) {
+                opts.headers = generateRequestHeaders(config.requestHeader, req);
+                console.debug(`Request headers are`, connect.headers);
+            }
+
+            // Use a proxy if configured
+            if (config.proxy) {
+                opts.agent = createProxyTunnel();
+            }
+
+            // Add query parameters to the URL if we're requesting a thumbnail
+            if (thumbnailQueryParams) {
+                opts.url += '?' + querystring.stringify(thumbnailQueryParams);
+            }
+
+            // Download the media
+            get(opts, (err, res) => {
+                if (err) reject(err);
+
+                // Write the file
+                res.pipe(fileWriteStream);
+
+                // Save the response headers
+                resolve(res.headers);
+            });
         });
     } catch (err) {
         if (!err.statusCode) {
             throw err;
         }
 
-        console.error(`Receieved status code ${err.statusCode} when requesting ${httpUrl}`);
+        console.error(`Received status code ${err.statusCode} when requesting ${httpUrl}`);
 
         throw new ClientError(502, 'Failed to get requested URL', 'MCS_MEDIA_REQUEST_FAILED');
     }
@@ -269,7 +281,7 @@ async function _generateReportFromDownload(req, domain, mediaId, matrixFile, opt
 }
 
 /**
- * Generate and cache a scan report for a given [enrcypted] file.
+ * Generate and cache a scan report for a given [encrypted] file.
  *
  * @param {object} console The console object to use for logging.
  * @param {string} httpUrl The HTTP URL used to retreive the file.

@@ -19,6 +19,7 @@ limitations under the License.
 const yaml = require('js-yaml');
 const fs = require('fs');
 const Joi = require('joi');
+const tunnel = require('tunnel');
 
 const configSchema = Joi.object().keys({
     server: Joi.object().keys({
