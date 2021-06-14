@@ -3,8 +3,6 @@ Matrix Content Scanner
 
 A Web service for scanning media hosted on a [Matrix](https://matrix.org) content repository.
 
-[![Build Status](https://travis-ci.org/matrix-org/matrix-content-scanner.svg?branch=master)](https://travis-ci.org/matrix-org/matrix-content-scanner)
-
 # Introduction
 
 MCS allows for arbitrary scanning of content hosted on Matrix. When a Matrix client requests media
@@ -22,7 +20,7 @@ Retrieving scan results follows the same steps but exposes a different API, as e
 
 # Dependencies
 ### Olm
-MCS requires the Olm library to handle `encrypted_body` requests. The version of Olm required is >2.2.2 and exposes the `PkEncryption` class. See [https://git.matrix.org/git/olm/](https://git.matrix.org/git/olm/).
+MCS requires the Olm library to handle `encrypted_body` requests. The version of Olm required is >3.2.3 and exposes the `PkEncryption` class. See [https://git.matrix.org/git/olm/](https://git.matrix.org/git/olm/).
 
 # Configuration
 See the [default configuration](config/default.config.yaml) for details.
