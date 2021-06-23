@@ -337,7 +337,7 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             return {clean: false, info: 'File type not supported'};
         }
 
-        // Write the decrypt file bytes to disk
+        // Write the decrypted file bytes to disk
         try {
             fs.writeFileSync(decryptedFilePath, decryptedFileContents);
         } catch (err) {
