@@ -335,8 +335,8 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             if (mimetype === null) {
                 console.info(`Skipping unsupported decrypted file - unknown mimetype`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(mimetype)) {
-                console.info(`Skipping unsupported decrypted file ${mimetype}`);
+            } else if (!mimetypeArray.includes(mimetype.mime)) {
+                console.info(`Skipping unsupported decrypted file ${mimetype.mime}`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
