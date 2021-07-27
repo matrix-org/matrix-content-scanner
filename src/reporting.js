@@ -313,7 +313,7 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     if (matrixFile && matrixFile.key) {
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
-        console.info(`FileType: ${matrixFile.mimetype}`);
+        console.info(`FileType: ${matrixFile.mimetype} [${filePath}]`);
 
         // Do an initial check of the mimetype based on what is reported by the client
         if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
@@ -330,11 +330,15 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
         }
 
         // Further validate the mimetype of the file from the decrypted content
-        let mimetype = fileType(decryptedFileContents);
-        if (mimetype === null) {
-            return {clean: false, info: 'File type not supported'};
-        } else if (mimetypeArray && !mimetypeArray.includes(mimetype)) {
-            return {clean: false, info: 'File type not supported'};
+        if (mimetypeArray) {
+            const mimetype = fileType(decryptedFileContents);
+            if (mimetype === null) {
+                console.info(`Skipping unsupported decrypted file - unknown mimetype [${filePath}]`);
+                return {clean: false, info: 'File type not supported'};
+            } else if (!mimetypeArray.includes(mimetype.mime)) {
+                console.info(`Skipping unsupported decrypted file ${mimetype.mime} [${filePath}]`);
+                return {clean: false, info: 'File type not supported'};
+            }
         }
 
         // Write the decrypted file bytes to disk
@@ -345,13 +349,14 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
             throw new ClientError(400, 'Failed to write decrypted file to disk', 'MCS_MEDIA_FAILED_TO_DECRYPT');
         }
     } else {
-        let fileData = fs.readFileSync(filePath);
-        let mimetype = fileType(fileData);
         if (mimetypeArray) {
+            const fileData = fs.readFileSync(filePath);
+            const mimetype = fileType(fileData);
             if (mimetype === null) {
+                console.info(`Skipping unsupported file - unknown mimetype [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (mimetypeArray && !mimetypeArray.includes(mimetype.mime)) {
-                console.info(`FileType: ${mimetype.mime}`);
+            } else if (!mimetypeArray.includes(mimetype.mime)) {
+                console.info(`Skipping unsupported file type ${mimetype.mime} [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
