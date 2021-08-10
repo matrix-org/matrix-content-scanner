@@ -313,12 +313,6 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     if (matrixFile && matrixFile.key) {
         console.info(`Decrypting ${filePath}, writing to ${decryptedFilePath}`);
-        console.info(`FileType: ${matrixFile.mimetype} [${filePath}]`);
-
-        // Do an initial check of the mimetype based on what is reported by the client
-        if (mimetypeArray && !mimetypeArray.includes(matrixFile.mimetype)) {
-            return {clean: false, info: 'File type not supported'};
-        }
 
         // Decrypt the file
         let decryptedFileContents;
