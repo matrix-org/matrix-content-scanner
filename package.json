@@ -1,6 +1,6 @@
 {
   "name": "matrix-context-scanner",
-  "version": "0.0.1",
+  "version": "1.7.0",
   "description": "A web service for scanning media hosted by a Matrix media repository",
   "main": "src/index.js",
   "author": "-",
