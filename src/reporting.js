@@ -366,7 +366,14 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
     console.info(`Running command ${cmd}`);
     const result = await executeCommand(cmd);
 
-    reportCache[reportHash] = result;
+    const config = getConfig();
+
+    if (
+        !config.scan.doNotCacheExitCodes
+        || !(result.exitCode in config.scan.doNotCacheExitCodes)
+    ) {
+        reportCache[reportHash] = result;
+    }
 
     return result;
 }

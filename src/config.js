@@ -28,6 +28,7 @@ const configSchema = Joi.object().keys({
     }).required(),
     scan: Joi.object().keys({
         script: Joi.string().required(),
+        doNotCacheExitCodes: Joi.array().items(Joi.number()),
         tempDirectory: Joi.string().required(),
         baseUrl: Joi.string().required(),
         directDownload: Joi.boolean(),
