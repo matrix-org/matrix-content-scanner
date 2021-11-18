@@ -22,6 +22,7 @@ const {
     generateHttpUrl,
     clearReportCache,
 } = require('../src/reporting.js');
+const {setConfig} = require("../src/config.js");
 
 const assert = require('assert');
 
@@ -58,6 +59,15 @@ function generateDecryptedReportFromFile(config = generateConfig) {
 describe('reporting.js', () => {
     beforeEach(() => {
         clearReportCache();
+
+        setConfig({
+            scan: {
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                script: "true"
+            },
+            altRemovalCmd: 'rm',
+        });
     });
 
     describe('getReport', () => {
@@ -133,6 +143,58 @@ describe('reporting.js', () => {
             const report = await generateDecryptedReportFromFile(modifiedConfig);
 
             assert.strictEqual(report.clean, false);
+        });
+
+        it('should not cache if a scan failed with an exit code that should be ignored', async () => {
+            setConfig({
+                scan: {
+                    baseUrl: "https://matrix.org",
+                    tempDirectory: "/tmp",
+                    script: "true",
+                    doNotCacheExitCodes: [5]
+                },
+                altRemovalCmd: 'rm',
+            })
+
+            const failureReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Script that exits with the error code we want to ignore, and ignores
+                // any other argument.
+                script: "exit 5;",
+            });
+
+            assert.strictEqual(failureReport.clean, false)
+
+            const successReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Now we want to accept everything.
+                script: "true",
+            });
+
+            assert.strictEqual(successReport.clean, true)
+        });
+
+        it('should cache a scan result', async () => {
+            const firstReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Mark every file as unsafe to see if the file is still cached as unsafe
+                // after we change the script to accept it.
+                script: "false",
+            });
+
+            assert.strictEqual(firstReport.clean, false)
+
+            const secondReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Now we want to accept everything.
+                script: "true",
+            });
+
+            assert.strictEqual(secondReport.clean, false)
         });
     });
 });

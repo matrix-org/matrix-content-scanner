@@ -6,6 +6,13 @@ server:
 scan:
     # The script that will be given a file as its first parameter
     script: './example.sh'
+    # If set and the script exits with an exit code listed here, the failure will not be
+    # cached. Useful to prevent caching of a failure due to e.g. the antivirus restarting.
+    #
+    # doNotCacheExitCodes:
+    #   - 1
+    #   - 2
+    #
     # The temporary directory to use
     tempDirectory: '/tmp'
     # The base URL of the homeserver to download media from
