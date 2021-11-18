@@ -370,7 +370,7 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     if (
         !config.scan.doNotCacheExitCodes
-        || !(result.exitCode in config.scan.doNotCacheExitCodes)
+        || !config.scan.doNotCacheExitCodes.includes(result.exitCode)
     ) {
         reportCache[reportHash] = result;
     }
