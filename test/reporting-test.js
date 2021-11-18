@@ -144,5 +144,36 @@ describe('reporting.js', () => {
 
             assert.strictEqual(report.clean, false);
         });
+
+        it('should not cache if a scan failed with an exit code that should be ignored', async () => {
+            setConfig({
+                scan: {
+                    baseUrl: "https://matrix.org",
+                    tempDirectory: "/tmp",
+                    script: "true",
+                    doNotCacheExitCodes: [5]
+                },
+                altRemovalCmd: 'rm',
+            })
+
+            const failureReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Script that exits with the error code we want to ignore, and ignores
+                // any other argument.
+                script: "exit 5;",
+            });
+
+            assert.strictEqual(failureReport.clean, false)
+
+            const successReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Now we want to accept everything.
+                script: "true",
+            });
+
+            assert.strictEqual(successReport.clean, true)
+        });
     });
 });
