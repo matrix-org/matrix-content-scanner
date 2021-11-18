@@ -22,6 +22,7 @@ const {
     generateHttpUrl,
     clearReportCache,
 } = require('../src/reporting.js');
+const {setConfig} = require("../src/config.js");
 
 const assert = require('assert');
 
@@ -58,6 +59,15 @@ function generateDecryptedReportFromFile(config = generateConfig) {
 describe('reporting.js', () => {
     beforeEach(() => {
         clearReportCache();
+
+        setConfig({
+            scan: {
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                script: "true"
+            },
+            altRemovalCmd: 'rm',
+        });
     });
 
     describe('getReport', () => {
