@@ -175,5 +175,26 @@ describe('reporting.js', () => {
 
             assert.strictEqual(successReport.clean, true)
         });
+
+        it('should cache a scan result', async () => {
+            const firstReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Mark every file as unsafe to see if the file is still cached as unsafe
+                // after we change the script to accept it.
+                script: "false",
+            });
+
+            assert.strictEqual(firstReport.clean, false)
+
+            const secondReport = await generateDecryptedReportFromFile({
+                baseUrl: "https://matrix.org",
+                tempDirectory: "/tmp",
+                // Now we want to accept everything.
+                script: "true",
+            });
+
+            assert.strictEqual(secondReport.clean, false)
+        });
     });
 });

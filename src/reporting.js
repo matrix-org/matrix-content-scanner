@@ -368,8 +368,10 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
     const config = getConfig();
 
+    // Only cache the result if the config doesn't tell us otherwise (i.e. only if
+    // doNotCacheExitCodes is an array that contains the exit code).
     if (
-        !config.scan.doNotCacheExitCodes
+        !Array.isArray(config.scan.doNotCacheExitCodes)
         || !config.scan.doNotCacheExitCodes.includes(result.exitCode)
     ) {
         reportCache[reportHash] = result;
