@@ -257,7 +257,7 @@ async function _generateReportFromDownload(req, domain, mediaId, matrixFile, opt
                 resolve(res.headers);
             });
         }).catch(err => {
-            console.error(`Failed to download file: ${err.message}`)
+            console.error(`Failed to download file: ${err.message}`);
             throw new ClientError(502, 'Failed to get requested URL', 'MCS_MEDIA_REQUEST_FAILED');
         });
     } catch (err) {
