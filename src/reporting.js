@@ -29,6 +29,29 @@ const crypto = require('crypto');
 const { getConfig } = require('./config.js');
 const {createProxyTunnel } = require('./proxy.js');
 const fileType = require('file-type');
+const mmmagic = require('mmmagic');
+
+/**
+ * Async function that determines the file type of a file, using libmagic's
+ * MIME type sniffing.
+ * There WILL be false detections but the quality is usually very good.
+ *
+ * @param {Buffer} fileData The data of the file.
+ *
+ * @returns {Promise} A promise that resolves with a string MIME type.
+ */
+function sniffFileType(fileData) {
+    return new Promise((resolve, reject) => {
+        const magic = new mmmagic.Magic(mmmagic.MAGIC_MIME_TYPE);
+        magic.detect(fileData, function(err, result) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
 
 // Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
