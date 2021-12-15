@@ -28,7 +28,6 @@ const decryptFile = require('./decrypt-file.js');
 const crypto = require('crypto');
 const { getConfig } = require('./config.js');
 const {createProxyTunnel } = require('./proxy.js');
-const fileType = require('file-type');
 const mmmagic = require('mmmagic');
 
 /**
@@ -354,12 +353,12 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
         // Further validate the mimetype of the file from the decrypted content
         if (mimetypeArray) {
-            const mimetype = fileType(decryptedFileContents);
+            const mimetype = await sniffFileType(decryptedFileContents);
             if (mimetype === null) {
                 console.info(`Skipping unsupported decrypted file - unknown mimetype [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(mimetype.mime)) {
-                console.info(`Skipping unsupported decrypted file ${mimetype.mime} [${filePath}]`);
+            } else if (!mimetypeArray.includes(mimetype)) {
+                console.info(`Skipping unsupported decrypted file ${mimetype} [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
@@ -374,12 +373,12 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
     } else {
         if (mimetypeArray) {
             const fileData = fs.readFileSync(filePath);
-            const mimetype = fileType(fileData);
+            const mimetype = await sniffFileType(fileData);
             if (mimetype === null) {
                 console.info(`Skipping unsupported file - unknown mimetype [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(mimetype.mime)) {
-                console.info(`Skipping unsupported file type ${mimetype.mime} [${filePath}]`);
+            } else if (!mimetypeArray.includes(mimetype)) {
+                console.info(`Skipping unsupported file type ${mimetype} [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
