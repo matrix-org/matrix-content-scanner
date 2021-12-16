@@ -100,7 +100,7 @@ describe('handlers', () => {
             });
         });
 
-        it('responds with a scan report if the mimetype is accepted in the configuration file', async () => {
+        it('responds with a scan report if the (binary format) mimetype is accepted in the configuration file', async () => {
             setConfig({
                 scan: {
                     baseUrl: "https://matrix.org",
@@ -113,6 +113,26 @@ describe('handlers', () => {
             const app = await createApp();
             return request(app)
                 .get('/_matrix/media_proxy/unstable/scan/matrix.org/EawFuailhYTuSPSGDGsNFigt')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .then(response => {
+                    assert(response.body.clean, true);
+            });
+        });
+
+        it('responds with a scan report if the (textual format) mimetype is accepted in the configuration file', async () => {
+            setConfig({
+                scan: {
+                    baseUrl: "https://matrix.org",
+                    tempDirectory: "/tmp",
+                    script: "true"
+                },
+                altRemovalCmd: 'rm',
+                acceptedMimeType: ['text/plain']
+            });
+            const app = await createApp();
+            return request(app)
+                .get('/_matrix/media_proxy/unstable/scan/matrix.org/obKqrnKoYPggwCLnvewDUrih')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .then(response => {
