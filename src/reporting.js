@@ -1,6 +1,6 @@
 /**
-
 Copyright 2018 New Vector Ltd.
+Copyright 2021 The Matrix.org Foundation C.I.C.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,7 +28,29 @@ const decryptFile = require('./decrypt-file.js');
 const crypto = require('crypto');
 const { getConfig } = require('./config.js');
 const {createProxyTunnel } = require('./proxy.js');
-const fileType = require('file-type');
+const mmmagic = require('mmmagic');
+
+/**
+ * Async function that determines the file type of a file, using libmagic's
+ * MIME type sniffing.
+ * There WILL be false detections but the quality is usually very good.
+ *
+ * @param {Buffer} fileData The data of the file.
+ *
+ * @returns {Promise} A promise that resolves with a string MIME type.
+ */
+function sniffFileType(fileData) {
+    return new Promise((resolve, reject) => {
+        const magic = new mmmagic.Magic(mmmagic.MAGIC_MIME_TYPE);
+        magic.detect(fileData, function(err, result) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
 
 // Generate a bas64 SHA 256 hash of the input string
 function base64sha256(s) {
@@ -331,12 +353,12 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
 
         // Further validate the mimetype of the file from the decrypted content
         if (mimetypeArray) {
-            const mimetype = fileType(decryptedFileContents);
+            const mimetype = await sniffFileType(decryptedFileContents);
             if (mimetype === null) {
                 console.info(`Skipping unsupported decrypted file - unknown mimetype [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(mimetype.mime)) {
-                console.info(`Skipping unsupported decrypted file ${mimetype.mime} [${filePath}]`);
+            } else if (!mimetypeArray.includes(mimetype)) {
+                console.info(`Skipping unsupported decrypted file ${mimetype} [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
@@ -351,12 +373,12 @@ async function generateReport(console, httpUrl, matrixFile, filePath, tempDir, s
     } else {
         if (mimetypeArray) {
             const fileData = fs.readFileSync(filePath);
-            const mimetype = fileType(fileData);
+            const mimetype = await sniffFileType(fileData);
             if (mimetype === null) {
                 console.info(`Skipping unsupported file - unknown mimetype [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
-            } else if (!mimetypeArray.includes(mimetype.mime)) {
-                console.info(`Skipping unsupported file type ${mimetype.mime} [${filePath}]`);
+            } else if (!mimetypeArray.includes(mimetype)) {
+                console.info(`Skipping unsupported file type ${mimetype} [${filePath}]`);
                 return {clean: false, info: 'File type not supported'};
             }
         }
