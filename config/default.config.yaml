@@ -66,7 +66,16 @@ middleware:
         # requests.
         picklePath: 'av_pickled_decryption.key'
 
-# Optional. A list of accepted mime type.
+# Optional. A list of accepted MIME types.
+#
+# WARNING! This cannot be relied on for security:
+#
+# it is possible to specially craft a file that looks like a different kind of file.
+# As one example, it is possible for a file to be both a PNG file and a
+# ZIP file yet will be detected as `image/png`.
+# Further, it should be generally assumed that most file formats have a way to
+# encode and attach extraneous data.
+#
 #acceptedMimeType:
 #    - 'image/jpeg'
 #    - 'image/jpg'
