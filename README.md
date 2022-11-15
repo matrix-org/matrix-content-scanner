@@ -1,6 +1,8 @@
 Matrix Content Scanner
 ======================
 
+**Note: This project is now deprecated in favour of https://github.com/matrix-org/matrix-content-scanner-python, which new deployments should use instead.**
+
 A Web service for scanning media hosted on a [Matrix](https://matrix.org) content repository.
 
 # Introduction
